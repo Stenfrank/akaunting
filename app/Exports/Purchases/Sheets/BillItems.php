@@ -9,21 +9,34 @@ class BillItems extends Export
 {
     public function collection()
     {
-        $model = Model::usingSearchString(request('search'));
+        $model = Model::with(['bill', 'item'])->usingSearchString(request('search'));
 
         if (!empty($this->ids)) {
             $model->whereIn('bill_id', (array) $this->ids);
         }
 
-        return $model->get();
+        return $model->cursor();
+    }
+
+    public function map($model): array
+    {
+        $bill = $model->bill;
+
+        if (empty($bill)) {
+            return [];
+        }
+
+        $model->bill_number = $bill->bill_number;
+        $model->item_name = $model->item->name;
+
+        return parent::map($model);
     }
 
     public function fields(): array
     {
         return [
-            'bill_id',
-            'item_id',
-            'name',
+            'bill_number',
+            'item_name',
             'quantity',
             'price',
             'total',

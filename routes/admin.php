@@ -1,5 +1,14 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
+/**
+ * 'admin' middleware applied to all routes
+ *
+ * @see \App\Providers\Route::mapAdminRoutes
+ * @see \modules\OfflinePayments\Routes\admin.php for module example
+ */
+
 Route::group(['as' => 'uploads.', 'prefix' => 'uploads'], function () {
     Route::delete('{id}', 'Common\Uploads@destroy')->name('destroy');
 });
@@ -33,10 +42,12 @@ Route::group(['prefix' => 'common'], function () {
 
     Route::post('notifications/disable', 'Common\Notifications@disable')->name('notifications.disable');
 
-    Route::post('bulk-actions/{group}/{type}', 'Common\BulkActions@action');
+    Route::post('bulk-actions/{group}/{type}', 'Common\BulkActions@action')->name('bulk-actions.action');
 
     Route::get('reports/{report}/print', 'Common\Reports@print')->name('reports.print');
     Route::get('reports/{report}/export', 'Common\Reports@export')->name('reports.export');
+    Route::get('reports/{report}/duplicate', 'Common\Reports@duplicate')->name('reports.duplicate');
+    Route::get('reports/clear', 'Common\Reports@clear')->name('reports.clear');
     Route::get('reports/fields', 'Common\Reports@fields')->name('reports.fields');
     Route::resource('reports', 'Common\Reports');
 });
@@ -58,8 +69,9 @@ Route::group(['prefix' => 'auth'], function () {
 
 Route::group(['prefix' => 'sales'], function () {
     Route::get('invoices/{invoice}/sent', 'Sales\Invoices@markSent')->name('invoices.sent');
+    Route::get('invoices/{invoice}/cancelled', 'Sales\Invoices@markCancelled')->name('invoices.cancelled');
     Route::get('invoices/{invoice}/email', 'Sales\Invoices@emailInvoice')->name('invoices.email');
-    Route::get('invoices/{invoice}/pay', 'Sales\Invoices@markPaid')->name('invoices.paid');
+    Route::get('invoices/{invoice}/paid', 'Sales\Invoices@markPaid')->name('invoices.paid');
     Route::get('invoices/{invoice}/print', 'Sales\Invoices@printInvoice')->name('invoices.print');
     Route::get('invoices/{invoice}/pdf', 'Sales\Invoices@pdfInvoice')->name('invoices.pdf');
     Route::get('invoices/{invoice}/duplicate', 'Sales\Invoices@duplicate')->name('invoices.duplicate');
@@ -86,6 +98,8 @@ Route::group(['prefix' => 'sales'], function () {
 
 Route::group(['prefix' => 'purchases'], function () {
     Route::get('bills/{bill}/received', 'Purchases\Bills@markReceived')->name('bills.received');
+    Route::get('bills/{bill}/cancelled', 'Purchases\Bills@markCancelled')->name('bills.cancelled');
+    Route::get('bills/{bill}/paid', 'Purchases\Bills@markPaid')->name('bills.paid');
     Route::get('bills/{bill}/print', 'Purchases\Bills@printBill')->name('bills.print');
     Route::get('bills/{bill}/pdf', 'Purchases\Bills@pdfBill')->name('bills.pdf');
     Route::get('bills/{bill}/duplicate', 'Purchases\Bills@duplicate')->name('bills.duplicate');
@@ -168,9 +182,9 @@ Route::group(['as' => 'apps.', 'prefix' => 'apps'], function () {
 
         Route::resource('my', 'Modules\My');
 
-        Route::get('categories/{alias}', 'Modules\Tiles@categoryModules');
-        Route::get('vendors/{alias}', 'Modules\Tiles@vendorModules');
-        Route::get('docs/{alias}', 'Modules\Item@documentation');
+        Route::get('categories/{alias}', 'Modules\Tiles@categoryModules')->name('categories.show');
+        Route::get('vendors/{alias}', 'Modules\Tiles@vendorModules')->name('vendors.show');
+        Route::get('docs/{alias}', 'Modules\Item@documentation')->name('docs.show');
 
         Route::get('paid', 'Modules\Tiles@paidModules')->name('paid');
         Route::get('new', 'Modules\Tiles@newModules')->name('new');
@@ -190,9 +204,10 @@ Route::group(['as' => 'apps.', 'prefix' => 'apps'], function () {
 });
 
 Route::group(['prefix' => 'install'], function () {
+    Route::get('updates', 'Install\Updates@index')->name('updates.index');
     Route::get('updates/changelog', 'Install\Updates@changelog')->name('updates.changelog');
     Route::get('updates/check', 'Install\Updates@check')->name('updates.check');
-    Route::get('updates/update/{alias}/{version}', 'Install\Updates@update')->name('updates.update');
+    Route::get('updates/run/{alias}/{version}', 'Install\Updates@run')->name('updates.run');
     Route::post('updates/steps', 'Install\Updates@steps')->name('updates.steps');
     Route::post('updates/download', 'Install\Updates@download')->middleware('api.key')->name('updates.download');
     Route::post('updates/unzip', 'Install\Updates@unzip')->middleware('api.key')->name('updates.unzip');
@@ -200,15 +215,17 @@ Route::group(['prefix' => 'install'], function () {
     Route::post('updates/migrate', 'Install\Updates@migrate')->name('updates.migrate');
     Route::post('updates/finish', 'Install\Updates@finish')->name('updates.finish');
     Route::post('updates/redirect', 'Install\Updates@redirect')->name('updates.redirect');
-    Route::resource('updates', 'Install\Updates');
 });
 
 Route::group(['as' => 'modals.', 'prefix' => 'modals'], function () {
+    Route::resource('accounts', 'Modals\Accounts');
     Route::resource('categories', 'Modals\Categories');
+    Route::resource('currencies', 'Modals\Currencies');
     Route::resource('customers', 'Modals\Customers');
     Route::resource('vendors', 'Modals\Vendors');
+    Route::resource('items', 'Modals\Items');
     Route::patch('invoice-templates', 'Modals\InvoiceTemplates@update')->name('invoice-templates.update');
-    Route::resource('invoices/{invoice}/transactions', 'Modals\InvoiceTransactions', ['middleware' => ['date.format', 'money']]);
-    Route::resource('bills/{bill}/transactions', 'Modals\BillTransactions', ['middleware' => ['date.format', 'money']]);
+    Route::resource('invoices/{invoice}/transactions', 'Modals\InvoiceTransactions', ['names' => 'invoices.invoice.transactions', 'middleware' => ['date.format', 'money']]);
+    Route::resource('bills/{bill}/transactions', 'Modals\BillTransactions', ['names' => 'bills.bill.transactions', 'middleware' => ['date.format', 'money']]);
     Route::resource('taxes', 'Modals\Taxes');
 });

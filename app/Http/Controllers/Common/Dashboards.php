@@ -25,8 +25,8 @@ class Dashboards extends Controller
     {
         // Add CRUD permission check
         $this->middleware('permission:create-common-dashboards')->only(['create', 'store', 'duplicate', 'import']);
-        $this->middleware('permission:read-common-dashboards')->only(['index', 'edit', 'export']);
-        $this->middleware('permission:update-common-dashboards')->only(['update', 'enable', 'disable', 'share']);
+        $this->middleware('permission:read-common-dashboards')->only(['show']);
+        $this->middleware('permission:update-common-dashboards')->only(['index', 'edit', 'export', 'update', 'enable', 'disable', 'share']);
         $this->middleware('permission:delete-common-dashboards')->only('destroy');
     }
 
@@ -47,9 +47,13 @@ class Dashboards extends Controller
      *
      * @return Response
      */
-    public function show()
+    public function show(Dashboard $dashboard)
     {
         $dashboard_id = session('dashboard_id', 0);
+
+        if ($dashboard) {
+            $dashboard_id = $dashboard->id;
+        }
 
         // Change Dashboard
         if (request()->get('dashboard_id', 0)) {
@@ -100,13 +104,13 @@ class Dashboards extends Controller
         $response = $this->ajaxDispatch(new CreateDashboard($request));
 
         if ($response['success']) {
-            $response['redirect'] = route('dashboard');
+            $response['redirect'] = route('dashboards.index');
 
             $message = trans('messages.success.added', ['type' => trans_choice('general.dashboards', 1)]);
 
             flash($message)->success();
         } else {
-            $response['redirect'] = route('dashboard');
+            $response['redirect'] = route('dashboards.create');
 
             $message = $response['message'];
 
@@ -209,7 +213,7 @@ class Dashboards extends Controller
     {
         $response = $this->ajaxDispatch(new DeleteDashboard($dashboard));
 
-        $response['redirect'] = route('dashboard');
+        $response['redirect'] = route('dashboards.index');
 
         if ($response['success']) {
             $message = trans('messages.success.deleted', ['type' => $dashboard->name]);

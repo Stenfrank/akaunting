@@ -4,13 +4,14 @@ namespace App\Models\Common;
 
 use App\Abstracts\Model;
 use Bkwld\Cloner\Cloneable;
+use App\Traits\Contacts;
 use App\Traits\Currencies;
 use App\Traits\Media;
 use Illuminate\Notifications\Notifiable;
 
 class Contact extends Model
 {
-    use Cloneable, Currencies, Media, Notifiable;
+    use Cloneable, Contacts, Currencies, Media, Notifiable;
 
     protected $table = 'contacts';
 
@@ -76,7 +77,29 @@ class Contact extends Model
             return $query;
         }
 
-        return $query->whereIn('type', (array) $types);
+        return $query->whereIn($this->table . '.type', (array) $types);
+    }
+
+    /**
+     * Scope to include only vendors.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeVendor($query)
+    {
+        return $query->whereIn($this->table . '.type', (array) $this->getVendorTypes());
+    }
+
+    /**
+     * Scope to include only customers.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeCustomer($query)
+    {
+        return $query->whereIn($this->table . '.type', (array) $this->getCustomerTypes());
     }
 
     public function scopeEmail($query, $email)
@@ -114,7 +137,7 @@ class Contact extends Model
         $this->$collection()->accrued()->notPaid()->each(function ($item) use (&$amount) {
             $unpaid = $item->amount - $item->paid;
 
-            $amount += $this->convertFromDefault($unpaid, $item->currency_code, $item->currency_rate, false);
+            $amount += $this->convertFromDefault($unpaid, $item->currency_code, $item->currency_rate);
         });
 
         return $amount;

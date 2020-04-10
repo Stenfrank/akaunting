@@ -27,6 +27,7 @@ class Overrider
     {
         // Set the active company settings
         setting()->setExtraColumns(['company_id' => static::$company_id]);
+        setting()->forgetAll();
         setting()->load(true);
 
         // Timezone
@@ -35,25 +36,23 @@ class Overrider
 
         // Email
         $email_protocol = setting('email.protocol', 'mail');
-        config(['mail.driver' => $email_protocol]);
+        config(['mail.default' => $email_protocol]);
         config(['mail.from.name' => setting('company.name')]);
         config(['mail.from.address' => setting('company.email')]);
 
         if ($email_protocol == 'sendmail') {
-            config(['mail.sendmail' => setting('email.sendmail_path')]);
+            config(['mail.mailers.sendmail.path' => setting('email.sendmail_path')]);
         } elseif ($email_protocol == 'smtp') {
-            config(['mail.host' => setting('email.smtp_host')]);
-            config(['mail.port' => setting('email.smtp_port')]);
-            config(['mail.username' => setting('email.smtp_username')]);
-            config(['mail.password' => setting('email.smtp_password')]);
-            config(['mail.encryption' => setting('email.smtp_encryption')]);
+            config(['mail.mailers.smtp.host' => setting('email.smtp_host')]);
+            config(['mail.mailers.smtp.port' => setting('email.smtp_port')]);
+            config(['mail.mailers.smtp.username' => setting('email.smtp_username')]);
+            config(['mail.mailers.smtp.password' => setting('email.smtp_password')]);
+            config(['mail.mailers.smtp.encryption' => setting('email.smtp_encryption')]);
         }
 
         // Locale
         if (session('locale') == '') {
-            //App::setLocale(setting('default.locale'));
-            //Session::put('locale', setting('default.locale'));
-            config(['app.locale' => setting('default.locale')]);
+            app()->setLocale(setting('default.locale'));
         }
 
         // Set app url dynamically
@@ -79,5 +78,4 @@ class Overrider
         // Set currencies with new settings
         \Akaunting\Money\Currency::setCurrencies(config('money'));
     }
-
 }

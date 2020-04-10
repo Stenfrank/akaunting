@@ -48,8 +48,10 @@ return [
     'localisations'         => 'Localizzazione|Localizzazioni',
     'defaults'              => 'Predefinito|Predefiniti',
     'widgets'               => 'Widget|Widget',
+    'templates'             => 'Modelli Template',
+    'sales'                 => 'Vendita - Vendite',
+    'purchases'             => 'Acquisto|Acquisti',
 
-    'dashboard'             => 'Cruscotto',
     'welcome'               => 'Benvenuto',
     'banking'               => 'Banca',
     'general'               => 'Generale',
@@ -68,10 +70,13 @@ return [
     'yearly'                => 'Annuale',
     'add'                   => 'Aggiungi',
     'add_new'               => 'Aggiungi nuovo',
+    'add_income'            => 'Aggiungi Reddito',
+    'add_expense'           => 'Aggiungi Spesa',
     'show'                  => 'Mostra',
     'edit'                  => 'Modifica',
     'delete'                => 'Elimina',
     'send'                  => 'Invia',
+    'share'                 => 'Condividi',
     'download'              => 'Scarica',
     'delete_confirm'        => 'Conferma eliminazione :name :type?',
     'name'                  => 'Nome',
@@ -123,7 +128,6 @@ return [
     'disable'               => 'Disattiva',
     'select_all'            => 'Seleziona tutto',
     'unselect_all'          => 'Deseleziona Tutto',
-    'go_to'                 => 'Vai a :name',
     'created_date'          => 'Data di Creazione',
     'period'                => 'Periodo',
     'frequency'             => 'Frequenza',
@@ -133,11 +137,28 @@ return [
     'difference'            => 'Differenza',
     'footer'                => 'Piè di pagina',
     'start_date'            => 'Data di inzio',
+    'end_date'              => 'Data di Fine',
     'basis'                 => 'Base',
     'accrual'               => 'Rateo',
     'cash'                  => 'Contanti',
     'group_by'              => 'Raggruppa per',
     'accounting'            => 'Contabilità',
+    'sort'                  => 'Ordine',
+    'width'                 => 'Larghezza',
+    'month'                 => 'Mese',
+    'year'                  => 'Anno',
+    'type_item_name'        => 'Digita un nome articolo',
+    'no_data'               => 'Nessun dato',
+    'no_matching_data'      => 'Nessun dato corrispondente',
+    'clear_cache'           => 'Svuota Cache',
+    'go_to_dashboard'       => 'Vai alla dashboard',
+
+    'card' => [
+        'name'                  => 'Nome sulla carta',
+        'number'                => 'Numero della carta',
+        'expiration_date'       => 'Data di scadenza',
+        'cvv'                   => 'CVV carta',
+    ],
 
     'title' => [
         'new'               => 'Nuovo :type',
@@ -147,6 +168,7 @@ return [
         'send'              => 'Invia :type',
         'get'               => 'Ottieni :type',
         'add'               => 'Aggiungi :type',
+        'manage'            => 'Gestisci :tipo',
     ],
 
     'form' => [
@@ -168,7 +190,7 @@ return [
     ],
 
     'empty' => [
-        'documentation' => 'Consulta la <a href=":url" target="_blank" class="text-success">documentazione</a> per maggiori dettagli.',
+        'documentation' => 'Consulta la <a href=":url" target="_blank">documentazione</a> per maggiori dettagli.',
         'items' => 'Articoli possono essere prodotti o servizi. È possibile utilizzare articoli durante la creazione di fatture e fatture per avere il prezzo, campi tassi, ecc.',
         'invoices' => 'Le fatture possono essere una tantum o ricorrenti. Puoi inviarle ai clienti e iniziare ad accettare pagamenti online.',
         'revenues' => 'I ricavi sono una transazione a reddito pagata. Può essere un record indipendente (ad esempio deposito) o collegato a una fattura.',
@@ -176,6 +198,9 @@ return [
         'bills' => 'Le fatture possono essere singole o ricorrenti. Indicano ciò che devi ai tuoi fornitori per i prodotti o servizi che acquisti.',
         'payments' => 'I pagamenti sono una transazione di spese pagate. Può essere un record indipendente (ad esempio ricevuta per il vitto) o collegato a una fattura.',
         'vendors' => 'I fornitori sono richiesti se si desidera creare fatture. È possibile visualizzare il saldo dovuto e filtrare i report dal fornitore.',
+        'transfers' => 'I trasferimenti ti permettono di trasferire denaro da un conto all\'altro, indipendentemente dal fatto che utilizzino o meno la stessa valuta.',
+        'taxes' => 'Le tasse sono utilizzate per applicare tariffe extra a fatture e bollette. Queste tasse influenzano le tue finanze.',
+        'reconciliations' => 'La riconciliazione bancaria è un processo eseguito per garantire che i dati bancari della tua azienda siano corretti.',
     ],
 
 ];

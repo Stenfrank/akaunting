@@ -19,7 +19,7 @@
                 <div class="row">
                     {{ Form::textGroup('name', trans('general.name'), 'font') }}
 
-                    {{ Form::textGroup('rate', trans('taxes.rate'), 'percent', ['@input' => 'taxRateReplace']) }}
+                    {{ Form::textGroup('rate', trans('taxes.rate'), 'percent', ['@input' => 'onChangeTaxRate']) }}
 
                     {{ Form::selectGroup('type', trans_choice('general.types', 1), 'bars', $types, 'normal') }}
 
@@ -28,8 +28,8 @@
             </div>
 
             <div class="card-footer">
-                <div class="row float-right">
-                    {{ Form::saveButtons('settings/taxes') }}
+                <div class="row save-buttons">
+                    {{ Form::saveButtons('taxes.index') }}
                 </div>
             </div>
         {!! Form::close() !!}

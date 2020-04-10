@@ -13,6 +13,7 @@ return [
     'price'                 => 'Preis',
     'sub_total'             => 'Zwischensumme',
     'discount'              => 'Rabatt',
+    'item_discount'         => 'Positions-Rabatt',
     'tax_total'             => 'Steuern Gesamt',
     'total'                 => 'Gesamt',
 
@@ -28,22 +29,29 @@ return [
     'histories'             => 'Historie',
     'payments'              => 'Zahlungen',
     'add_payment'           => 'Zahlung hinzufügen',
+    'mark_paid'             => 'Als bezahlt markieren',
     'mark_received'         => 'Als erhalten markieren',
+    'mark_cancelled'        => 'Stornieren',
     'download_pdf'          => 'Als PDF herunterladen',
     'send_mail'             => 'E-Mail senden',
     'create_bill'           => 'Rechnung erstellen',
     'receive_bill'          => 'Rechnung erhalten',
     'make_payment'          => 'Zahlung vornehmen',
 
-    'status' => [
+    'statuses' => [
         'draft'             => 'Entwurf',
         'received'          => 'Erhalten',
         'partial'           => 'Teilweise',
         'paid'              => 'Bezahlt',
+        'overdue'           => 'Überfällig',
+        'unpaid'            => 'Unbezahlt',
+        'cancelled'         => 'Storniert',
     ],
 
     'messages' => [
-        'received'          => 'Rechnung wurde als erfolgreich erhalten markiert!',
+        'marked_received'   => 'Rechnung als erhalten markiert!',
+        'marked_paid'       => 'Rechnung als bezahlt markiert!',
+        'marked_cancelled'  => 'Rechnung als storniert markiert!',
         'draft'             => 'Dies ist eine Rechnungs-<b>Vorschau</b>. Die Rechnung erscheint in den Diagrammen nachdem sie als erhalten markiert wurde.',
 
         'status' => [

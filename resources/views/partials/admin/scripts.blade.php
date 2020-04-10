@@ -5,21 +5,16 @@
 
     @stack('scripts_start')
 
-    <script src="{{ asset('public/vendor/chart.js/dist/Chart.min.js') }}"></script>
-
     <script src="{{ asset('public/js/common/search.js?v=' . version('short')) }}"></script>
 
-    <script src="{{ asset('public/0.js?v=' . version('short')) }}"></script>
-
-    <script src="https://unpkg.com/vue"></script>
-
     @stack('charts')
+
+    <script src="{{ asset('public/vendor/chart.js/dist/Chart.min.js') }}"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/4.0.2/echarts-en.min.js" charset=utf-8></script>
 
     <!-- Argon -->
     <script type="text/javascript">
-
         'use strict';
 
         var Layout = (function() {

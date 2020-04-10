@@ -2,8 +2,10 @@
 
 namespace App\Abstracts;
 
+use App\Traits\Import as ImportHelper;
+use App\Utilities\Date;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Jenssegers\Date\Date;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
@@ -14,10 +16,11 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Validators\Failure;
+use Illuminate\Support\Facades\Validator;
 
 abstract class Import implements ToModel, SkipsOnError, SkipsOnFailure, WithBatchInserts, WithChunkReading, WithHeadingRow, WithMapping, WithValidation
 {
-    use Importable;
+    use Importable, ImportHelper;
 
     public $empty_field = 'empty---';
 
@@ -85,5 +88,25 @@ abstract class Import implements ToModel, SkipsOnError, SkipsOnFailure, WithBatc
     public function onError(\Throwable $e)
     {
         flash($e->getMessage())->error()->important();
+    }
+
+    public function isNotValid($row)
+    {
+        return Validator::make($row, $this->rules())->fails();
+    }
+
+    public function isEmpty($row, $fields)
+    {
+        $fields = Arr::wrap($fields);
+
+        foreach ($fields as $field) {
+            if (!empty($row[$field])) {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 }

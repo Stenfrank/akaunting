@@ -6,6 +6,7 @@ use App\Abstracts\Http\Controller;
 use App\Http\Requests\Setting\Setting as Request;
 use App\Models\Common\Company;
 use App\Models\Module\Module;
+use App\Models\Setting\Currency;
 use App\Traits\DateTime;
 use App\Traits\Uploads;
 use App\Utilities\Installer;
@@ -82,7 +83,7 @@ class Settings extends Controller
 
         $company = Company::find($company_id);
 
-        $companies = Company::all()->count();
+        $total_companies = Company::count();
 
         foreach ($fields as $key => $value) {
             $real_key = $prefix . '.' . $key;
@@ -113,8 +114,14 @@ class Settings extends Controller
                 user()->setAttribute('locale', $value)->save();
             }
 
+            if ($real_key == 'default.currency') {
+                $currency = Currency::code($value)->first();
+                $currency->rate = '1';
+                $currency->save();
+            }
+
             // If only 1 company
-            if ($companies == 1) {
+            if ($total_companies == 1) {
                 $this->oneCompany($real_key, $value);
             }
 

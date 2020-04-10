@@ -16,7 +16,6 @@
     <!-- Argon -->
 
     <script type="text/javascript">
-
         'use strict';
 
         var Layout = (function() {

@@ -21,12 +21,12 @@ class DeleteTransfer extends Job
     /**
      * Execute the job.
      *
-     * @return mixed
+     * @return boolean|Exception
      */
     public function handle()
     {
-        $this->deleteRelationships($this->transfer, ['expense_transaction', 'income_transaction']);
-
+        $this->transfer->expense_transaction->delete();
+        $this->transfer->income_transaction->delete();
         $this->transfer->delete();
 
         return true;

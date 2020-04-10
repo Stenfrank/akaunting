@@ -24,7 +24,7 @@
 
                     {{ Form::moneyGroup('amount', trans('general.amount'), 'money-bill-alt', ['required' => 'required', 'autofocus' => 'autofocus', 'currency' => $currency], 0) }}
 
-                    {{ Form::selectGroup('account_id',  trans_choice('general.accounts', 1), 'university', $accounts, setting('default.account'), ['required' => 'required', 'change' => 'onChangeAccount']) }}
+                    {{ Form::selectAddNewGroup('account_id', trans_choice('general.accounts', 1), 'university', $accounts, setting('default.account'), ['required' => 'required', 'path' => route('modals.accounts.create'), 'change' => 'onChangeAccount']) }}
 
                     {{ Form::selectAddNewGroup('contact_id', trans_choice('general.customers', 1), 'user', $customers, setting('default.contact'), ['path' => route('modals.customers.create')]) }}
 
@@ -40,13 +40,13 @@
 
                     {{ Form::fileGroup('attachment', trans('general.attachment')) }}
 
-                    {{ Form::selectGroup('document_id', trans_choice('general.invoices', 1), 'file-invoice', [], null, ['disabled']) }}
+                    {{ Form::selectGroup('document_id', trans_choice('general.invoices', 1), 'file-invoice', [], null, ['disabled' => 'true']) }}
                 </div>
             </div>
 
             <div class="card-footer">
-                <div class="row float-right">
-                    {{ Form::saveButtons('sales/revenues') }}
+                <div class="row save-buttons">
+                    {{ Form::saveButtons('revenues.index') }}
                 </div>
             </div>
 

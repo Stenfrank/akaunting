@@ -3,11 +3,14 @@
 namespace Modules\OfflinePayments\Listeners;
 
 use App\Events\Module\Installed as Event;
-use App\Models\Auth\Role;
-use App\Models\Auth\Permission;
+use App\Traits\Permissions;
 
 class InstallModule
 {
+    use Permissions;
+
+    public $alias = 'offline-payments';
+
     /**
      * Handle the event.
      *
@@ -16,7 +19,7 @@ class InstallModule
      */
     public function handle(Event $event)
     {
-        if ($event->alias != 'offline-payments') {
+        if ($event->alias != $this->alias) {
             return;
         }
 
@@ -25,38 +28,9 @@ class InstallModule
 
     protected function updatePermissions()
     {
-        $permissions = [];
-
-        $permissions[] = Permission::firstOrCreate([
-            'name' => 'read-offline-payments-settings',
-            'display_name' => 'Read Offline Payments Settings',
-            'description' => 'Read Offline Payments Settings',
+        // c=create, r=read, u=update, d=delete
+        $this->attachPermissionsToAdminRoles([
+            $this->alias . '-settings' => 'r,u,d',
         ]);
-
-        $permissions[] = Permission::firstOrCreate([
-            'name' => 'update-offline-payments-settings',
-            'display_name' => 'Update Offline Payments Settings',
-            'description' => 'Update Offline Payments Settings',
-        ]);
-
-        $permissions[] = Permission::firstOrCreate([
-            'name' => 'delete-offline-payments-settings',
-            'display_name' => 'Delete Offline Payments Settings',
-            'description' => 'Delete Offline Payments Settings',
-        ]);
-
-        $roles = Role::all()->filter(function ($r) {
-            return $r->hasPermission('read-admin-panel');
-        });
-
-        foreach ($roles as $role) {
-            foreach ($permissions as $permission) {
-                if ($role->hasPermission($permission->name)) {
-                    continue;
-                }
-
-                $role->attachPermission($permission);
-            }
-        }
     }
 }

@@ -39,20 +39,15 @@ class RecurringCheck extends Command
     protected $today;
 
     /**
-     * Create a new command instance.
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
      * Execute the console command.
      *
      * @return mixed
      */
     public function handle()
     {
+        // Disable model cache
+        config(['laravel-model-caching.enabled' => false]);
+
         // Get all companies
         $companies = Company::enabled()->cursor();
 
@@ -77,6 +72,7 @@ class RecurringCheck extends Command
 
         // Unset company_id
         session()->forget('company_id');
+        setting()->forgetAll();
     }
 
     protected function recur($recurring, $schedule)
@@ -118,7 +114,7 @@ class RecurringCheck extends Command
                 if ($this->today->eq(Date::parse($model->paid_at->format('Y-m-d')))) {
                     break;
                 }
-                
+
                 $model->cloneable_relations = [];
 
                 // Create new record
@@ -162,7 +158,7 @@ class RecurringCheck extends Command
         $clone->$date_field = $this->today->format('Y-m-d');
         $clone->due_at = $this->today->copy()->addDays($diff_days)->format('Y-m-d');
         $clone->save();
-        
+
         return $clone;
     }
 }

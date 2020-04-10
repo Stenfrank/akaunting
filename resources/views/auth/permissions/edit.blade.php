@@ -18,7 +18,7 @@
 
             <div class="card-body">
                 <div class="row">
-                    {{ Form::textGroup('display_name', trans('general.name'), 'tasks') }}
+                    {{ Form::textGroup('display_name', trans('general.name'), 'font') }}
 
                     {{ Form::textGroup('name', trans('general.code'), 'code') }}
 
@@ -28,8 +28,8 @@
 
             @permission('update-auth-permissions')
                 <div class="card-footer">
-                    <div class="row float-right">
-                        {{ Form::saveButtons('auth/permissions') }}
+                    <div class="row save-buttons">
+                        {{ Form::saveButtons('permissions.index') }}
                     </div>
                 </div>
             @endpermission

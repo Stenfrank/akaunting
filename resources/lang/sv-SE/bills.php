@@ -28,6 +28,7 @@ return [
     'histories'             => 'Historia',
     'payments'              => 'Betalningar',
     'add_payment'           => 'Lägg till betalning',
+    'mark_paid'             => 'Markera som betald',
     'mark_received'         => 'Markerad som mottagen',
     'download_pdf'          => 'Ladda ner PDF',
     'send_mail'             => 'Skicka E-post',
@@ -35,15 +36,18 @@ return [
     'receive_bill'          => 'Mottag faktura',
     'make_payment'          => 'Gör betalning',
 
-    'status' => [
+    'statuses' => [
         'draft'             => 'Utkast',
         'received'          => 'Mottagen',
         'partial'           => 'Delvis',
         'paid'              => 'Betald',
+        'overdue'           => 'Förfallen',
+        'unpaid'            => 'Obetald',
     ],
 
     'messages' => [
         'received'          => 'Faktura markerad som mottagen!',
+        'marked_paid'       => 'Fakturan markerad som betald!',
         'draft'             => 'Detta är ett <b>DRAFT</b> förslag och kommer att stämmas av innan den mottages.',
 
         'status' => [

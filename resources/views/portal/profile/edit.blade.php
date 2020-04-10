@@ -5,8 +5,9 @@
 @section('content')
     <div class="card">
         {!! Form::model($user, [
-            'url' => 'portal/profile/update',
             'id' => 'profile',
+            'method' => 'PATCH',
+            'route' => ['portal.profile.update', $user->id],
             '@submit.prevent' => 'onSubmit',
             '@keydown' => 'form.errors.clear($event.target.name)',
             'files' => true,
@@ -39,8 +40,8 @@
 
         @permission(['update-portal-profile'])
             <div class="card-footer">
-                <div class="row float-right">
-                    {{ Form::saveButtons('portal') }}
+                <div class="row save-buttons">
+                    {{ Form::saveButtons('portal.dashboard') }}
                 </div>
             </div>
         @endpermission

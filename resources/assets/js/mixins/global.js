@@ -1,19 +1,25 @@
+import Vue from 'vue';
+
 import axios from 'axios';
 
 import AkauntingSearch from './../components/AkauntingSearch';
 import AkauntingModal from './../components/AkauntingModal';
+import AkauntingMoney from './../components/AkauntingMoney';
+import AkauntingModalAddNew from './../components/AkauntingModalAddNew';
 import AkauntingRadioGroup from './../components/forms/AkauntingRadioGroup';
 import AkauntingSelect from './../components/AkauntingSelect';
 import AkauntingSelectRemote from './../components/AkauntingSelectRemote';
 import AkauntingDate from './../components/AkauntingDate';
 import AkauntingRecurring from './../components/AkauntingRecurring';
+import AkauntingHtmlEditor from './../components/AkauntingHtmlEditor';
 
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import NProgressAxios from './../plugins/nprogress-axios';
 
-import {VMoney} from 'v-money';
-import { Select, Option } from 'element-ui';
+import { Select, Option, Steps, Step, Button, Link, Tooltip, ColorPicker } from 'element-ui';
+
+import Form from './../plugins/form';
 
 export default {
     components: {
@@ -21,48 +27,35 @@ export default {
         AkauntingRadioGroup,
         AkauntingSelect,
         AkauntingSelectRemote,
+        AkauntingMoney,
         AkauntingModal,
+        AkauntingModalAddNew,
         AkauntingDate,
         AkauntingRecurring,
+        AkauntingHtmlEditor,
         [Select.name]: Select,
-        [Option.name]: Option
+        [Option.name]: Option,
+        [Steps.name]: Steps,
+        [Step.name]: Step,
+        [Button.name]: Button,
+        [Link.name]: Link,
+        [Tooltip.name]: Tooltip,
+        [ColorPicker.name]: ColorPicker,
     },
 
     data: function () {
         return {
-            confirm: {
-                url: '',
-                title: '',
-                message: '',
-                button_cancel: '',
-                button_delete: '',
-                show: false
-            },
-            money: {
-                decimal: '.',
-                thousands: ',',
-                prefix: '$ ',
-                suffix: '',
-                precision: 2,
-                masked: false /* doesn't work with directive */
-            }
+            component: '',
+            currency: null,
         }
     },
 
     directives: {
-        money: VMoney
+        //money: VMoney
     },
 
     mounted() {
         this.checkNotify();
-
-        if (aka_currency) {
-            this.money.decimal = aka_currency.decimal_mark;
-            this.money.thousands = aka_currency.thousands_separator;
-            this.money.prefix = (aka_currency.symbol_first) ? aka_currency.symbol : '';
-            this.money.suffix = !(aka_currency.symbol_first) ? aka_currency.symbol : '';
-            this.money.precision = aka_currency.precision;
-        }
     },
 
     methods: {
@@ -133,41 +126,54 @@ export default {
 
         // Actions > Delete
         confirmDelete(url, title, message, button_cancel, button_delete) {
-            this.confirm.url = url;
-            this.confirm.title = title;
-            this.confirm.message = message;
-            this.confirm.button_cancel = button_cancel;
-            this.confirm.button_delete = button_delete;
-            this.confirm.show = true;
-        },
+            let confirm = {
+                url: url,
+                title: title,
+                message: message,
+                button_cancel: button_cancel,
+                button_delete: button_delete,
+                show: true
+            };
 
-        // Delete action post
-        onDelete() {
-            axios({
-                method: 'DELETE',
-                url: this.confirm.url,
-            })
-            .then(response => {
-                if (response.data.redirect) {
-                    this.confirm.url = '';
-                    this.confirm.title = '';
-                    this.confirm.message = '';
-                    this.confirm.show = false;
+            this.component = Vue.component('add-new-component', (resolve, reject) => {
+                resolve({
+                    template : '<div id="dynamic-component"><akaunting-modal v-if="confirm.show" :show="confirm.show" :title="confirm.title" :message="confirm.message" :button_cancel="confirm.button_cancel" :button_delete="confirm.button_delete" @confirm="onDelete" @cancel="cancelDelete"></akaunting-modal></div>',
 
-                    window.location.href = response.data.redirect;
-                }
-            })
-            .catch(error => {
-                this.success = false;
+                    components: {
+                        AkauntingModal,
+                    },
+
+                    data: function () {
+                        return {
+                            confirm: confirm,
+                        }
+                    },
+
+                    methods: {
+                        // Delete action post
+                       async onDelete() {
+                            let promise = Promise.resolve(axios({
+                                method: 'DELETE',
+                                url: this.confirm.url,
+                            }));
+
+                            promise.then(response => {
+                                if (response.data.redirect) {
+                                    window.location.href = response.data.redirect;
+                                }
+                            })
+                            .catch(error => {
+                                this.success = false;
+                            });
+                        },
+
+                        // Close modal empty default value
+                        cancelDelete() {
+                            this.confirm.show = false;
+                        },
+                    }
+                })
             });
-        },
-
-        // Close modal empty default value
-        cancelDelete() {
-            this.confirm.url = '';
-            this.confirm.title = '';
-            this.confirm.message = '';
-            this.confirm.show = false;
         },
 
         // Change bank account get money and currency rate
@@ -181,16 +187,30 @@ export default {
                 this.form.currency_code = response.data.currency_code;
                 this.form.currency_rate = response.data.currency_rate;
 
-                this.money.decimal = response.data.decimal_mark;
-                this.money.thousands = response.data.thousands_separator;
-                this.money.prefix = (response.data.symbol_first) ? response.data.symbol : '';
-                this.money.suffix = !(response.data.symbol_first) ? response.data.symbol : '';
-                this.money.precision = response.data.precision;
+                this.currency = response.data;
             })
             .catch(error => {
             });
         },
 
+        // Change currency get money
+        onChangeCurrency(currency_code) {
+            axios.get(url + '/settings/currencies/currency', {
+                params: {
+                  code: currency_code
+                }
+            })
+            .then(response => {
+                this.currency = response.data;
+
+                this.form.currency_code = response.data.code;
+                this.form.currency_rate = response.data.rate;
+            })
+            .catch(error => {
+            });
+        },
+
+        // Pages limit change
         onChangePaginationLimit(event) {
             let path = '';
 
@@ -228,6 +248,65 @@ export default {
             }
 
             window.location.href = path;
-        }
+        },
+
+        // Dynamic component get path view and show it.
+        onDynamicComponent(path)
+        {
+            axios.get(path)
+            .then(response => {
+                let html = response.data.html;
+
+                this.component = Vue.component('add-new-component', (resolve, reject) => {
+                    resolve({
+                        template : '<div id="dynamic-component">' + html + '</div>',
+
+                        components: {
+                            AkauntingSearch,
+                            AkauntingRadioGroup,
+                            AkauntingSelect,
+                            AkauntingSelectRemote,
+                            AkauntingModal,
+                            AkauntingModalAddNew,
+                            AkauntingDate,
+                            AkauntingRecurring,
+                            [Select.name]: Select,
+                            [Option.name]: Option,
+                            [Steps.name]: Steps,
+                            [Step.name]: Step,
+                            [Button.name]: Button,
+                        },
+
+                        created: function() {
+                            this.form = new Form('form-create');
+                        },
+
+                        mounted() {
+                            let form_id = document.getElementById('dynamic-component').querySelectorAll('form')[1].id;
+
+                            this.form = new Form(form_id);
+                        },
+
+                        data: function () {
+                            return {
+                                form: {},
+                                dynamic: {
+                                    data: dynamic_data
+                                }
+                            }
+                        },
+
+                        methods: {
+                        }
+                    })
+                });
+            })
+            .catch(e => {
+                this.errors.push(e);
+            })
+            .finally(function () {
+                // always executed
+            });
+        },
     }
 }

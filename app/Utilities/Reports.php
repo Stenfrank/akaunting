@@ -35,13 +35,13 @@ class Reports
                 continue;
             }
 
-            $classes[$class] = (new $class())->getDefaultName();
+            $classes[$class] = static::getDefaultName($class);
         }
 
         return $classes;
     }
 
-    public static function getClassInstance($model, $get_totals = true)
+    public static function getClassInstance($model, $load_data = true)
     {
         if (is_string($model)) {
             $model = Report::where('class', $model)->first();
@@ -53,7 +53,7 @@ class Reports
 
         $class = $model->class;
 
-        return new $class($model, $get_totals);
+        return new $class($model, $load_data);
     }
 
     public static function canRead($class)
@@ -78,6 +78,11 @@ class Reports
 
         $permission = $prefix . Str::kebab($class_name);
 
-        return $permission;
+        return str_replace('--', '-', $permission);
+    }
+
+    public static function getDefaultName($class)
+    {
+        return (new $class())->getDefaultName();
     }
 }

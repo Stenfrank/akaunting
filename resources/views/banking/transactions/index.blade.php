@@ -17,22 +17,20 @@
     <div class="card">
         <div class="card-header border-bottom-0">
             {!! Form::open([
-                'url' => 'banking/transactions',
-                'role' => 'form',
                 'method' => 'GET',
+                'route' => 'transactions.index',
+                'role' => 'form',
                 'class' => 'mb-0'
             ]) !!}
-                <div class="row">
-                    <div class="col-12 d-flex align-items-center">
-                        <span class="font-weight-400 d-none d-lg-block mr-2">{{ trans('general.search') }}:</span>
-                        <akaunting-search></akaunting-search>
-                    </div>
-                </div>
+                <akaunting-search
+                    :placeholder="'{{ trans('general.search_placeholder') }}'"
+                    :options="{{ json_encode([]) }}"
+                ></akaunting-search>
             {!! Form::close() !!}
         </div>
 
         <div class="table-responsive">
-            <table class="table table-flush">
+            <table class="table table-flush table-hover">
                 <thead class="thead-light">
                     <tr class="row table-head-line">
                         <th class="col-sm-2 col-md-2 d-none d-sm-block">@sortablelink('paid_at', trans('general.date'))</th>
@@ -46,7 +44,7 @@
 
                 <tbody>
                     @foreach($transactions as $item)
-                        <tr class="row align-items-center border-top-1">
+                        <tr class="row align-items-center border-top-1 tr-py">
                             <td class="col-sm-2 col-md-2 d-none d-sm-block">@date($item->paid_at)</td>
                             <td class="col-xs-4 col-sm-3 col-md-2">{{ $item->account->name }}</td>
                             <td class="col-xs-4 col-sm-3 col-md-2">{{ trans_choice('general.' . Str::plural($item->type), 1) }}</td>
@@ -54,10 +52,10 @@
                             <td class="col-md-2 d-none d-md-block long-texts">{{ $item->description }}</td>
                             <td class="col-xs-4 col-sm-2 col-md-2 text-right">
                                 @php
-                                $id = !empty($item->document_id) ? $item->document_id : $item->id;
-                                $route = ($item->type == 'income') ? (!empty($item->document_id) ? 'invoices.show' : 'revenues.edit') : (!empty($item->document_id) ? 'bills.show' : 'payments.edit');
+                                    $id = !empty($item->document_id) ? $item->document_id : $item->id;
+                                    $route = ($item->type == 'income') ? (!empty($item->document_id) ? 'invoices.show' : 'revenues.edit') : (!empty($item->document_id) ? 'bills.show' : 'payments.edit');
                                 @endphp
-                                <a href="{{ route($route, $id) }}" class="text-success">
+                                <a href="{{ route($route, $id) }}">
                                     @money($item->amount, $item->currency_code, true)
                                 </a>
                             </td>

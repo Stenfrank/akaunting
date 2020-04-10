@@ -28,7 +28,7 @@ const app = new Vue({
     data: function () {
         return {
             form: new Form('payment'),
-            bulk_action: new BulkAction('payments')
+            bulk_action: new BulkAction('payments'),
         }
-    }
+    },
 });

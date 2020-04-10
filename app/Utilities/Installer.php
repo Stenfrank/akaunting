@@ -4,6 +4,7 @@ namespace App\Utilities;
 
 use App\Jobs\Auth\CreateUser;
 use App\Jobs\Common\CreateCompany;
+use App\Utilities\Console;
 use Artisan;
 use Config;
 use DB;
@@ -115,6 +116,10 @@ class Installer
             $requirements[] = trans('install.requirements.directory', ['directory' => 'storage/logs']);
         }
 
+        if (Console::run('help') !== true) {
+            $requirements[] = trans('install.requirements.executable');
+        }
+
         return $requirements;
     }
 
@@ -151,8 +156,8 @@ class Installer
         // Create tables
         Artisan::call('migrate', ['--force' => true]);
 
-        // Create Roles
-        Artisan::call('db:seed', ['--class' => 'Database\Seeds\Roles', '--force' => true]);
+        // Create Permissions
+        Artisan::call('db:seed', ['--class' => 'Database\Seeds\Permissions', '--force' => true]);
 
         return true;
     }
@@ -254,10 +259,11 @@ class Installer
     {
         // Update .env file
         static::updateEnv([
-            'APP_LOCALE'        =>  session('locale'),
-            'APP_INSTALLED'     =>  'true',
-            'APP_DEBUG'         =>  'false',
-            'FIREWALL_ENABLED'  =>  'true',
+            'APP_LOCALE'            =>  session('locale'),
+            'APP_INSTALLED'         =>  'true',
+            'APP_DEBUG'             =>  'false',
+            'FIREWALL_ENABLED'      =>  'true',
+            'MODEL_CACHE_ENABLED'   =>  'true',
         ]);
 
         // Rename the robots.txt file

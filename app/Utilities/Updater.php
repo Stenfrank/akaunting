@@ -5,12 +5,14 @@ namespace App\Utilities;
 use App\Events\Install\UpdateCopied;
 use App\Events\Install\UpdateDownloaded;
 use App\Events\Install\UpdateUnzipped;
+use App\Models\Module\Module;
 use App\Utilities\Console;
 use App\Traits\SiteApi;
 use Artisan;
 use Cache;
 use Date;
 use File;
+use Illuminate\Support\Str;
 use ZipArchive;
 
 class Updater
@@ -99,10 +101,11 @@ class Updater
                 throw new \Exception(trans('modules.errors.file_copy', ['module' => $alias]));
             }
         } else {
-            // Get module instance
-            $module = module($alias);
-
-            $module_path = $module->getPath();
+            if ($module = module($alias)) {
+                $module_path = $module->getPath();
+            } else {
+                $module_path = base_path('modules/' . Str::studly($alias));
+            }
 
             // Create module directory
             if (!File::isDirectory($module_path)) {
@@ -125,14 +128,20 @@ class Updater
 
     public static function finish($alias, $new, $old)
     {
-        $company_id = session('company_id');
+        if ($alias == 'core') {
+            $companies = [session('company_id')];
+        } else {
+            $companies = Module::alias($alias)->where('company_id', '<>', '0')->pluck('company_id')->toArray();
+        }
 
-        $command = "php artisan update:finish {$alias} {$company_id} {$new} {$old}";
+        foreach ($companies as $company) {
+            $command = "update:finish {$alias} {$company} {$new} {$old}";
 
-        if (true !== $result = Console::run($command)) {
-            $message = !empty($result) ? $result : trans('modules.errors.finish', ['module' => $alias]);
+            if (true !== $result = Console::run($command)) {
+                $message = !empty($result) ? $result : trans('modules.errors.finish', ['module' => $alias]);
 
-            throw new \Exception($message);
+                throw new \Exception($message);
+            }
         }
     }
 
@@ -149,7 +158,7 @@ class Updater
 
         $modules = module()->all();
 
-        $versions = Versions::latest($modules);
+        $versions = Versions::all($modules);
 
         foreach ($versions as $alias => $latest_version) {
             $installed_version = ($alias == 'core') ? version('short') : module($alias)->get('version');

@@ -15,7 +15,7 @@ class CoreV200 extends Migration
     {
         // Footer column
         Schema::table('invoices', function (Blueprint $table) {
-            $table->text('footer')->nullable();
+            $table->text('footer')->nullable()->after('notes');
         });
 
         // Contacts
@@ -234,6 +234,11 @@ class CoreV200 extends Migration
                 // 2.0 install
                 $table->dropUnique(['company_id', 'sku', 'deleted_at']);
             }
+        });
+
+        // Landing page column
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('landing_page', 70)->nullable()->default('dashboard')->after('locale');
         });
     }
 

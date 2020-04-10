@@ -20,6 +20,16 @@ BulkActions extends Controller
      */
     public function action($group, $type, Request $request)
     {
+        if ($request->get('handle', '*') == '*') {
+            return response()->json([
+                'success' => false,
+                'redirect' => true,
+                'error' => true,
+                'data' => [],
+                'message' => ''
+            ]);
+        }
+
         // Check is module
         $module = module($group);
 
@@ -27,6 +37,18 @@ BulkActions extends Controller
             $bulk_actions = app('Modules\\' . $module->getStudlyName() . '\BulkActions\\' . ucfirst($type));
         } else {
             $bulk_actions = app('App\BulkActions\\' .  ucfirst($group) . '\\' . ucfirst($type));
+        }
+
+        if (isset($bulk_actions->actions[$request->get('handle')]['permission']) && !user()->can($bulk_actions->actions[$request->get('handle')]['permission'])) {
+            flash(trans('errors.message.403'))->error();
+
+            return response()->json([
+                'success' => false,
+                'redirect' => true,
+                'error' => true,
+                'data' => [],
+                'message' => trans('errors.message.403')
+            ]);
         }
 
         $result = $bulk_actions->{$request->get('handle')}($request);

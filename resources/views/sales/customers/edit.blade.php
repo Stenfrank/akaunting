@@ -23,7 +23,7 @@
 
                 {{ Form::textGroup('tax_number', trans('general.tax_number'), 'percent', []) }}
 
-                {{ Form::selectGroup('currency_code', trans_choice('general.currencies', 1), 'exchange-alt', $currencies, $customer->currency_code) }}
+                {{ Form::selectAddNewGroup('currency_code', trans_choice('general.currencies', 1), 'exchange-alt', $currencies, $customer->currency_code, ['required' => 'required', 'path' => route('modals.currencies.create'), 'field' => ['key' => 'code', 'value' => 'name']]) }}
 
                 {{ Form::textGroup('phone', trans('general.phone'), 'phone', []) }}
 
@@ -42,7 +42,7 @@
                                 {{ Form::checkbox('create_user', '1', 1, [
                                     'id' => 'create_user',
                                     'class' => 'custom-control-input',
-                                    'disabled' => 'disabled'
+                                    'disabled' => 'true'
                                 ]) }}
 
                                 <label class="custom-control-label" for="create_user">
@@ -73,8 +73,8 @@
 
         @permission('update-sales-customers')
             <div class="card-footer">
-                <div class="float-right">
-                    {{ Form::saveButtons('sales/customers') }}
+                <div class="row save-buttons">
+                    {{ Form::saveButtons('customers.index') }}
                 </div>
             </div>
         @endpermission

@@ -24,6 +24,8 @@ return [
         'enabled' => true,
         'path' => base_path() . '/app/Console/Stubs/Modules',
         'files' => [
+            'listeners/install' => 'Listeners/InstallModule.php',
+            'providers/event' => 'Providers/Event.php',
             'routes/admin' => 'Routes/admin.php',
             'routes/portal' => 'Routes/portal.php',
             'lang/general' => 'Resources/lang/en-GB/general.php',
@@ -35,8 +37,10 @@ return [
             'package' => 'package.json',
         ],
         'replacements' => [
-            'routes/admin' => ['ALIAS', 'STUDLY_NAME'],
-            'routes/portal' => ['ALIAS', 'STUDLY_NAME'],
+            'listeners/install' => ['ALIAS', 'STUDLY_NAME', 'MODULE_NAMESPACE'],
+            'providers/event' => ['ALIAS', 'STUDLY_NAME', 'MODULE_NAMESPACE'],
+            'routes/admin' => ['ALIAS', 'STUDLY_NAME', 'MODULE_NAMESPACE'],
+            'routes/portal' => ['ALIAS', 'STUDLY_NAME', 'MODULE_NAMESPACE'],
             'webpack' => ['ALIAS'],
             'json' => ['ALIAS', 'STUDLY_NAME', 'MODULE_NAMESPACE'],
             'lang/general' => ['ALIAS', 'STUDLY_NAME'],
@@ -97,8 +101,8 @@ return [
             'config' => ['path' => 'Config', 'generate' => false],
             'command' => ['path' => 'Console', 'generate' => true],
             'migration' => ['path' => 'Database/Migrations', 'generate' => true],
-            'seeder' => ['path' => 'Database/Seeders', 'generate' => true],
-            'factory' => ['path' => 'Database/factories', 'generate' => false],
+            'seeder' => ['path' => 'Database/Seeds', 'generate' => true],
+            'factory' => ['path' => 'Database/Factories', 'generate' => true],
             'model' => ['path' => 'Models', 'generate' => true],
             'controller' => ['path' => 'Http/Controllers', 'generate' => true],
             'middleware' => ['path' => 'Http/Middleware', 'generate' => false],
@@ -162,7 +166,7 @@ return [
     |
     */
     'cache' => [
-        'enabled' => true,
+        'enabled' => false,
         'key' => 'module',
         'lifetime' => 60,
     ],

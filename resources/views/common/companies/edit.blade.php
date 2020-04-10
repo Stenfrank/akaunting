@@ -18,13 +18,13 @@
 
             <div class="card-body">
                 <div class="row">
-                    {{ Form::textGroup('name', trans('general.name'), 'building') }}
+                    {{ Form::textGroup('name', trans('general.name'), 'font') }}
 
                     {{ Form::emailGroup('email', trans('general.email'), 'envelope') }}
 
-                    {{ Form::selectGroup('currency', trans_choice('general.currencies', 1), 'exchange-alt', $currencies, $company->currency) }}
+                    {{ Form::selectGroup('currency', trans_choice('general.currencies', 1), 'exchange-alt', $currencies, $company->currency ?? 'USD') }}
 
-                    {{ Form::textGroup('domain', trans('companies.domain'), 'globe', []) }}
+                    {{ Form::selectGroup('locale', trans_choice('general.languages', 1), 'flag', language()->allowed(), $company->locale ?? config('app.locale', 'en-GB'), []) }}
 
                     {{ Form::textareaGroup('address', trans('general.address')) }}
 
@@ -36,8 +36,8 @@
 
             @permission('update-common-companies')
                 <div class="card-footer">
-                    <div class="row float-right">
-                        {{ Form::saveButtons('common/companies') }}
+                    <div class="row save-buttons">
+                        {{ Form::saveButtons('companies.index') }}
                     </div>
                 </div>
             @endpermission

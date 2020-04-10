@@ -35,7 +35,7 @@
                 <div class="col-md-6">
                     @if ($payment->description)
                         <p class="form-control-label">{{ trans('general.description') }}</p>
-                        <p class="form-control text-muted long-texts">{{ $payment->description }}</p>
+                        <p class="text-muted long-texts">{{ $payment->description }}</p>
                     @endif
                 </div>
 
@@ -49,19 +49,19 @@
                             </div>
                         </div>
                         <div class="table-responsive">
-                            <table class="table align-items-center table-flush">
+                            <table class="table table-flush table-hover">
                                 <thead class="thead-light">
                                     <tr class="row table-head-line">
-                                        <th class="col-xs-4 col-md-4 text-left">{{ trans('general.amount') }}</th>
-                                        <th class="col-xs-4 col-md-4 text-left">{{ trans_choice('general.payment_methods', 1) }}</th>
-                                        <th class="col-xs-4 col-md-4 text-right long-texts">{{ trans('general.description') }}</th>
+                                        <th class="col-xs-4 col-sm-2 text-right">{{ trans('general.amount') }}</th>
+                                        <th class="col-xs-4 col-sm-3 text-left">{{ trans_choice('general.payment_methods', 1) }}</th>
+                                        <th class="col-xs-4 col-sm-7 text-left long-texts">{{ trans('general.description') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr class="row border-top-1">
-                                        <td class="col-xs-4 col-md-4 text-left">@money($payment->amount, $payment->currency_code, true)</td>
-                                        <td class="col-xs-4 col-md-4 text-left">{{ $payment_methods[$payment->payment_method] }}</td>
-                                        <td class="col-xs-4 col-md-4 text-right long-texts">{{ $payment->description }}</td>
+                                    <tr class="row border-top-1 tr-py">
+                                        <td class="col-xs-4 col-sm-2 text-right">@money($payment->amount, $payment->currency_code, true)</td>
+                                        <td class="col-xs-4 col-sm-3 text-left">{{ $payment_methods[$payment->payment_method] }}</td>
+                                        <td class="col-xs-4 col-sm-7 text-left long-texts">{{ $payment->description }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -72,27 +72,26 @@
         </div>
 
         @if ($payment->attachment)
-            <div class="card-footer pb-0">
+            <div class="card-footer">
                 <div class="row float-right">
                     <div class="col-md-12">
                         @if (1)
-                            <div class="card w-50">
-                                <div class="card-body text-center">
-                                    <i class="far fa-file-pdf font-size-50"></i>
-                                </div>
-                                <div class="card-footer">
+                           <div class="card mb-0">
+                                <div class="card-body">
                                     <div class="row align-items-center">
-                                        <div class="col-xs-6 col-md-6">
-                                            <a class="btn btn-icon btn-white" type="button">
+                                        <div class="col-auto">
+                                            <i class="far fa-file-pdf display-3"></i>
+                                        </div>
+
+                                        <div class="col-auto">
+                                            <a class="btn btn-sm btn-icon btn-white" type="button">
                                                 <span class="btn-inner--icon">
                                                     <i class="fas fa-paperclip"></i>
                                                     {{ basename($payment->attachment) }}
                                                 </span>
                                             </a>
-                                        </div>
 
-                                        <div class="col-xs-6 col-md-6">
-                                            <a class="btn btn-icon btn-white float-right" type="button">
+                                            <a class="btn btn-sm btn-icon btn-info text-white float-right" type="button">
                                                 <span class="btn-inner--icon">
                                                     <i class="fas fa-file-download"></i>
                                                     {{ basename($payment->attachment) }}
@@ -103,27 +102,26 @@
                                 </div>
                             </div>
                         @else
-                            <div class="card w-50">
-                                <div class="card-body text-center">
-                                    @if($payment->attachment)
-                                        <img src="public/img/invoice_templates/classic.png" alt="Attachment">
-                                    @else
-                                        <i class="far fa-file-image font-size-50"></i>
-                                    @endif
-                                </div>
-                                <div class="card-footer">
-                                    <div class="row">
-                                        <div class="col-xs-6 col-md-6">
-                                            <a class="btn btn-icon btn-white" type="button">
+                           <div class="card mb-0">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            @if($payment->attachment)
+                                                <img src="public/img/invoice_templates/classic.png" alt="Attachment">
+                                            @else
+                                                <i class="far fa-file-image display-3"></i>
+                                            @endif
+                                        </div>
+
+                                        <div class="col-auto">
+                                            <a class="btn btn-sm btn-icon btn-white" type="button">
                                                 <span class="btn-inner--icon">
                                                     <i class="fas fa-camera"></i>
                                                     {{ basename($payment->attachment) }}
                                                 </span>
                                             </a>
-                                        </div>
 
-                                        <div class="col-xs-6 col-md-6">
-                                            <a class="btn btn-icon btn-white float-right" type="button">
+                                            <a class="btn btn-sm btn-icon btn-info text-white float-right" type="button">
                                                 <span class="btn-inner--icon">
                                                     <i class="fas fa-file-download"></i>
                                                     {{ basename($payment->attachment) }}

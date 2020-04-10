@@ -1,10 +1,10 @@
 {
     "name": "Akaunting",
     "short_name": "Akaunting",
-    "start_url": ".",
+    "start_url": ".?utm_source=pwa",
     "display": "standalone",
-    "theme_color": "#6da252",
-    "background_color": "#6F679B",
+    "theme_color": "#FFFFFF",
+    "background_color": "#FFFFFF",
     "orientation": "any",
     "splash": {
         "640x1136":  "public/img/icons/splash-640x1136.png",
@@ -30,7 +30,7 @@
             "sizes": "96x96"
         },
         {
-            "src": "public/img/images/icons/akaunting-128x128.png",
+            "src": "public/img/icons/akaunting-128x128.png",
             "type": "image/png",
             "sizes": "128x128"
         },

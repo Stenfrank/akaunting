@@ -7,36 +7,163 @@
     font-style: normal;
 }
 
+/*--Layout Content--*/
+.content-layout
+{
+    max-width: 1300px !important;
+}
+/*--Layout Content Finish--*/
+
+/*--------Cursor Styles--------*/
+/*--Cursor Pointer--*/
+.cursor-pointer
+{
+    cursor: pointer !important;
+}
+/*--Cursor Pointer Finish--*/
+
+/*--Cursor Default--*/
+.cursor-default
+{
+    cursor: default !important;
+}
+/*--Cursor Pointer Finish--*/
+/*--------Cursor Styles Finish--------*/
+
+
+/*--------Border Radius Styles--------*/
+/*--Border Radius None--*/
+.border-radius-none
+{
+    border-radius: 0 !important;
+}
+/*--Border Radius None Finish--*/
+
+/*--Border Radius Default--*/
+.border-radius-default
+{
+    border-radius: 0.25rem !important
+}
+/*--Border Radius Default Finish--*/
+/*--------Border Radius Styles Finish--------*/
+
+
+/*--------Overflow Styles--------*/
+/*--Overflow Y Hidden--*/
+.overflow-y-hidden
+{
+    overflow-y: hidden !important;
+}
+/*--Overflow Y Hidden Finish--*/
+
+/*--Overflow Y Scroll--*/
+.overflow-y-scroll
+{
+    overflow-y: scroll !important;
+}
+/*--Overflow Y Scroll Finish--*/
+
+/*--Overflow X Hidden--*/
+.overflow-x-hidden
+{
+    overflow-x: hidden !important;
+}
+/*--Overflow X Hidden Finish--*/
+
+/*--Overflow X Scroll--*/
+.overflow-x-scroll
+{
+    overflow-x: scroll !important;
+}
+/*--Overflow X Scroll Finish--*/
+/*--------Overflow Styles Finish--------*/
+
+
+/*--------Akaunting Backgrounds--------*/
+/*--Login Page Background--*/
+.login-page
+{
+    background: url('../img/login.png') no-repeat center center fixed;
+    height: 100%;
+    width: 100%;
+    padding: 5% 0;
+    background-size: cover;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+}
+/*--Login Page Background Finish--*/
+
+/*--Wizard Page Background--*/
+.wizard-page
+{
+    background: url('../img/login.png') no-repeat center center fixed;
+    height: 100%;
+    width: 100%;
+    padding: 5% 0;
+    background-size: cover;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+}
+/*--Wizard Page Background Finish--*/
+
+/*--Installation Page Background--*/
+.installation-page
+{
+    background: url('../img/login.png') no-repeat center center fixed;
+    height: 100%;
+    width: 100%;
+    padding: 5% 0;
+    background-size: cover;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+}
+/*--Installation Page Background Finish--*/
+/*--------Akaunting Backgrounds Finish--------*/
+
 
 /*--------Credit Card--------*/
-.card-input__input:hover, .card-input__input:focus {
+.card-input__input:hover, .card-input__input:focus
+{
     border-color: #55588b !important;
 }
 /*--------Credit Card Finish--------*/
 
 
-/*--------General Button Focus--------*/
+/*--------Custom Toggle--------*/
+.custom-toggle
+{
+    width: 60px;
+}
+
+.custom-toggle input:checked + .status-green:before
+{
+    left: 10px;
+}
+
+.custom-toggle-slider:after
+{
+    top: -1px;
+}
+/*--------Custom Toggle Finish--------*/
+
+
+/*--Button Element Focus--*/
 button:focus
 {
     outline: none !important;
 }
-/*--------General Button Focus Finish--------*/
+/*--Button Element Focus Finish--*/
 
 
-/*--------General Button Hover--------*/
+/*--Button Hover--*/
 .btn:hover
 {
     Transform: translateY(0px);
 }
-/*--------General Button Hover Finish--------*/
-
-
-/*--------Forgot Text--------*/
-.forgot-text:hover
-{
-    color: #3c3f72;
-}
-/*--------Forgot Text Finish--------*/
+/*--Button Hover Finish--*/
 
 
 /*--------Chart Donut Height--------*/
@@ -48,45 +175,12 @@ button:focus
 /*--------Chart Donut Height Finish--------*/
 
 
-/*--------Cursor Pointer--------*/
-.cursor-pointer
-{
-    cursor: pointer !important;
-}
-/*--------Cursor Pointer Finish--------*/
-
-
-/*--------Cursor Default--------*/
-.cursor-default
-{
-    cursor: default !important;
-}
-/*--------Cursor Default Finish--------*/
-
-
 /*--------Wizard Steps--------*/
 .wizard-header
 {
     border-radius: calc(0.375rem - 1px) calc(0.375rem - 1px) 0 0;
 }
-
 /*--------Wizard Steps Finish--------*/
-
-
-/*--------Border Radius None--------*/
-.border-radius-none
-{
-    border-radius: 0 !important;
-}
-/*--------Border Radius None Finished--------*/
-
-
-/*--------Border Radius Default--------*/
-.border-radius-default
-{
-    border-radius: 0.25rem !important
-}
-/*--------Border Radius Default Finished--------*/
 
 .dropup .dropdown-toggle::after
 {
@@ -98,27 +192,6 @@ button:focus
     text-overflow: ellipsis;
     overflow: hidden;
 }
-
-/*--------Left Menu--------*/
-.overflow-y-hidden
-{
-    overflow-y: hidden !important;
-}
-
-.g-sidenav-hidden .navbar-vertical.navbar-expand-xs
-{
-    overflow: hidden !important;
-}
-/*--------Left Menu Finish--------*/
-
-
-/*--------Action Column--------*/
-.action-column
-{
-    padding-left: 1.2rem !important;
-}
-/*--------Action Column Finish--------*/
-
 
 /*--------Customer/Vendor Show--------*/
 .show-transaction-card-header
@@ -138,14 +211,6 @@ button:focus
 /*--------Customer/Vendor Show Finish--------*/
 
 
-/*--------Content Width--------*/
-.content-layout
-{
-    max-width: 1300px !important;
-}
-/*--------Content Width Finish-------*/
-
-
 /*--------Navbar Notification--------*/
 .nav-link .badge-update
 {
@@ -157,7 +222,6 @@ button:focus
     height: 1rem !important;
     font-size: 0.5rem;
 }
-
 
 .nav-link .badge-reminder
 {
@@ -180,20 +244,23 @@ button:focus
 /*--------Index Page Tables Finish--------*/
 
 
-/*--------Left Menu Dropdown--------*/
+/*--------Left Menu--------*/
 .menu-dropdown
 {
     position: absolute !important;
     left: 1.2rem;
-
 }
+
 .menu-dropdown-width
 {
     min-width: 13rem !important;
 }
 
-
-/*--------Left Menu Dropdown Finish--------*/
+.g-sidenav-hidden .navbar-vertical.navbar-expand-xs
+{
+    overflow: hidden !important;
+}
+/*--------Left Menu Finish--------*/
 
 
 /*--------Max Width 100 Pixel--------*/
@@ -212,14 +279,22 @@ button:focus
 /*--------Form Group Finish--------*/
 
 
-/*--------Long Texts--------*/
+/*--Long Texts--*/
 .long-texts
 {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
 }
-/*--------Long Texts Finish--------*/
+/*--Long Texts Finish--*/
+
+
+/*--Akaunting Column Style--*/
+.col-aka
+{
+    margin-left: -51px;
+}
+/*--Akaunting Column Styl Finish--*/
 
 
 /*--------Table Head Row Margin--------*/
@@ -247,14 +322,6 @@ button:focus
 /*--------Table Body Row Margin Finish--------*/
 
 
-/*--------Card Footer--------*/
-.card-footer
-{
-    margin: 0;
-}
-/*--------Card Footer Finish--------*/
-
-
 /*--------Item Column Image--------*/
 .item-img
 {
@@ -264,13 +331,6 @@ button:focus
 /*--------Item Column Image Finish--------*/
 
 
-/*--------Border Top--------*/
-.border-top-1
-{
-    border-top: 1px solid #e9ecef !important;
-}
-/*--------Border Top Finish--------*/
-
 /*--------Border--------*/
 .border-1
 {
@@ -278,6 +338,12 @@ button:focus
 }
 /*--------Border Finish--------*/
 
+/*--------Border Top--------*/
+.border-top-1
+{
+    border-top: 1px solid #e9ecef !important;
+}
+/*--------Border Top Finish--------*/
 
 /*--------Border Bottom--------*/
 .border-bottom-1
@@ -286,14 +352,12 @@ button:focus
 }
 /*--------Border Bottom Finish--------*/
 
-
 /*--------Border Top Style--------*/
 .border-top-style
 {
     border-top-style: hidden !important;
 }
 /*--------Border Top Style Finish--------*/
-
 
 /*--------Border Bottom Style--------*/
 .border-bottom-style
@@ -325,18 +389,23 @@ button:focus
 /*--------Table Head Line Finish--------*/
 
 
-/*--------Company Name--------*/
+/*--Display Grid--*/
 .d-grid
 {
     display: grid !important;
 }
-/*--------Company Name Finish--------*/
+/*--Display Grid Finish--*/
 
 
 /*--------Card Header Bulk Action--------*/
 .d-none.show
 {
     display : flex !important;
+}
+
+.form-group.d-none.show
+{
+    display : unset !important;
 }
 
 .btn .d-none.show
@@ -356,15 +425,7 @@ button:focus
 /*--------Card Action Button Finish--------*/
 
 
-/*--------Table Layout Fixed--------*/
-.table-layout-fixed
-{
-    table-layout: fixed;
-}
-/*--------Table Layout Fixed Finish--------*/
-
-
-/*--------Akaunting Loader--------*/
+/*--Akaunting Button Animation--*/
 .aka-loader-frame
 {
     width: 59.88px;
@@ -418,6 +479,11 @@ button:focus
     }
 }
 
+.btn-outline-confirm:disabled span
+{
+    opacity: 1 !important;
+}
+
 .btn .aka-loader
 {
     display: none !important;
@@ -432,15 +498,10 @@ button:focus
 {
     display: block !important;
 }
-
-.btn-delete{
-    width: 73.10px;
-}
-/*--------Akaunting Loader Finish--------*/
+/*--Akaunting Button Animation Finish--*/
 
 
 /*--------Settings Index Page--------*/
-
 /*--------Settings Icons--------*/
 .settings-icons
 {
@@ -453,7 +514,8 @@ button:focus
 /*--------Settings Icons Finish--------*/
 
 /*--------Settings Button Focus--------*/
-.btn-icon-clipboard:focus {
+.btn-icon-clipboard:focus
+{
     outline: none;
 }
 /*--------Settings Button Focus Finish--------*/
@@ -464,7 +526,6 @@ button:focus
     box-shadow: none !important;
 }
 /*--------Shadow None Focus Finish--------*/
-
 /*--------Settings Index Page Finish--------*/
 
 
@@ -475,77 +536,6 @@ button:focus
     padding-top: 7px;
 }
 /*--------Pagination Alignment Finish--------*/
-
-
-/*--------Akaunting Style Table Column--------*/
-.col-aka
-{
-    margin-left: -51px;
-}
-/*--------Akaunting Style Table Column Finish--------*/
-
-
-/*--------Login Background--------*/
-.login-page
-{
-    background: url('../img/login.png') no-repeat center center fixed;
-    height: 100%;
-    width: 100%;
-    padding: 5% 0;
-    background-size: cover;
-    -webkit-background-size: cover;
-    -moz-background-size: cover;
-    -o-background-size: cover;
-}
-/*--------Login Background Finish--------*/
-
-
-/*--------Wizard Background--------*/
-.wizard-page
-{
-    background: url('../img/login.png') no-repeat center center fixed;
-    height: 100%;
-    width: 100%;
-    padding: 5% 0;
-    background-size: cover;
-    -webkit-background-size: cover;
-    -moz-background-size: cover;
-    -o-background-size: cover;
-}
-/*--------Wizard Background Finish--------*/
-
-
-/*--------Installation Background--------*/
-.installation-page
-{
-    background: url('../img/login.png') no-repeat center center fixed;
-    height: 100%;
-    width: 100%;
-    padding: 5% 0;
-    background-size: cover;
-    -webkit-background-size: cover;
-    -moz-background-size: cover;
-    -o-background-size: cover;
-}
-
-.install-line
-{
-    width: 75%;
-    position: absolute;
-    margin-top: 1.7rem;
-    margin-bottom: 1.7rem;
-    margin-left: 2.5rem;
-    border-top: 5px solid rgba(0, 0, 0, 0.1);
-}
-/*--------Installation Background Finish--------*/
-
-
-/*--------Font Size 1--------*/
-.font-size-1
-{
-    font-size: 1rem !important;
-}
-/*--------Font Size 1 Finish--------*/
 
 
 /*--------Avatar Size--------*/
@@ -565,7 +555,6 @@ button:focus
 }
 /*--------Button Disabled Hover Finish--------*/
 
-
 /*--------Recurring Inputs--------*/
 .recurring-single
 {
@@ -578,8 +567,12 @@ button:focus
 {
     padding-top: 1.75rem !important;
 }
-/*--------Invoice and Bill Total Column Finish--------*/
 
+.item-total
+{
+    width: 15%;
+}
+/*--------Invoice and Bill Total Column Finish--------*/
 
 /*--------Custom Table--------*/
 .table thead th
@@ -587,19 +580,11 @@ button:focus
     border-bottom: 0;
 }
 
-.table-flush tbody tr td {
+.table-flush tbody tr td
+{
     border: 0 !important;
 }
 /*--------Custom Table Finish--------*/
-
-
-/*--------Add Item Show--------*/
-.item-show
-{
-    min-width: 253px;
-    border-radius: 0.4375rem;
-}
-/*--------Add Item Show Finish--------*/
 
 
 /*--------Height 0--------*/
@@ -609,14 +594,17 @@ button:focus
 }
 /*--------Height 0 Finish--------*/
 
+
 /*--------Editor Text--------*/
 .ql-editor p
 {
     font-size: 0.775rem !important;
+    margin-bottom: 0 !important;
 }
 /*--------Editor text Finish--------*/
 
-table .align-items-center td span.badge {
+table .align-items-center td span.badge
+{
     height: 24px;
     padding-top: 8px;
     font-size: 9px;
@@ -645,18 +633,22 @@ table .align-items-center td span.badge {
 /*--------Print Template Finish--------*/
 
 
-/*--------Font Size 50--------*/
-.font-size-50
-{
-    font-size: 50px !important;
-}
-/*--------Font Size 50 Finish--------*/
-
 /*--------Report Column--------*/
-.report-column
+.report-column-name
 {
-    max-width: 100px;
-    width: 160px !important;
+    -webkit-box-flex: 0;
+    -ms-flex: 0 0 10%;
+    flex: 0 0 10%;
+    width: 10%;
+    max-width: 10%;
+}
+
+.report-column-value
+{
+    -webkit-box-flex: 0;
+    -ms-flex: 0 0 6.66%;
+    flex: 0 0 6.66%;
+    max-width: 6.66%;
 }
 /*--------Report Column Finish--------*/
 
@@ -671,9 +663,94 @@ table .align-items-center td span.badge {
 /*--------App Comment Finish--------*/
 
 
-/*----------------RESPONSIVE START LINE----------------*/
-/*--------Xs Breakpoint--------*/
-@media (min-width: 304px) and (max-width: 575.98px)
+/*--------Blank Page Image--------*/
+.blank-image
+{
+    height: 300px;
+}
+/*--------Blank Page Image Finish--------*/
+
+
+/*--------Text Pre Nowrap--------*/
+.text-pre-nowrap
+{
+    white-space: pre-wrap !important;
+}
+/*--------Text Pre Nowrap Finish--------*/
+
+
+/*--------Table Without toggle button--------*/
+.tr-py
+{
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+/*--------Table Without toggle button Finish--------*/
+
+
+/*--------Table No Records--------*/
+.nr-py
+{
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+/*--------Table No Records Finish--------*/
+
+
+/*--------From Group Disabled--------*/
+.form-group.disabled .input-group-text, .form-group.readonly .input-group-text
+{
+    background-color: #e9ecef;
+}
+/*--------From Group Disabled Finish--------*/
+
+
+/*--------Modal Dialog Resizing--------*/
+@media (min-width: 576px)
+{
+    .modal-payment .modal-dialog
+    {
+      max-width: 559px !important;
+    }
+}
+/*--------Modal Dialog Resizing Finish--------*/
+
+
+/*--Save Buttons Responsive--*/
+.save-buttons
+{
+    float: right !important;
+}
+/*--Save Buttons Responsive Finish--*/
+
+
+/*--Index Pages Badge Min Width--*/
+.mw-60
+{
+    min-width: 60px;
+}
+/*--Index Pages Badge Min Width Finish--*/
+
+
+/*--Quantity Width--*/
+.w-10
+{
+    width: 10%;
+}
+/*--Quantity Width Finish--*/
+
+
+/*--Discount Width--*/
+.w-12
+{
+    width: 12%;
+}
+/*--Discount Width Finish--*/
+
+
+/*--------Responsive--------*/
+/*--Xs Breakpoint--*/
+@media (max-width: 575.98px)
 {
     .col-xs-1 {width: 8.33%;}
     .col-xs-2 {width: 16.66%;}
@@ -707,6 +784,11 @@ table .align-items-center td span.badge {
         margin-top: 16px;
     }
 
+    .header-drop-top
+    {
+        display: block !important;
+    }
+
     .header-button-bottom
     {
         width: 100%;
@@ -725,6 +807,11 @@ table .align-items-center td span.badge {
         font-size: 0.75rem !important;
     }
 
+    .blank-image
+    {
+        height: 200px;
+    }
+
     .col-aka
     {
         margin-left: 0;
@@ -738,12 +825,7 @@ table .align-items-center td span.badge {
 
     .left-menu-toggle-position
     {
-        margin-left: 1rem !important;
-    }
-
-    .nav-header-text
-    {
-      width: 8.5rem;
+        margin-left: 2rem !important;
     }
 
     .dashboard-action
@@ -751,64 +833,61 @@ table .align-items-center td span.badge {
         float: right;
     }
 
-    .install-line
+    .dropdown-menu-xs-left
     {
-        width: 0;
-        position: absolute;
-        margin-left: 7.75rem;
-        border-left: 5px solid rgba(0, 0, 0, 0.1);
-        height: 200px;
+        right: auto;
+        left: 0 !important;
+    }
+
+    .dropdown-menu-xs-right
+    {
+        right: 0 !important;
+        left: auto;
+    }
+
+    .pagination-xs
+    {
+        padding-right: 0;
+        padding-top: 1.5rem;
+    }
+
+    .el-range-editor.el-input__inner
+    {
+        width: 100% !important;
+        margin-top: 1rem;
+    }
+
+    .save-buttons
+    {
+        float: none !important;
     }
 }
-/*--------Xs Breakpoint Finish--------*/
+/*--Xs Breakpoint Finish--*/
 
-/*--------S Breakpoint--------*/
+/*--Sm Breakpoint--*/
 @media (min-width: 576px) and (max-width: 767.98px)
 {
-    .dashboard-action
-    {
-        margin-left: 4rem !important;
-    }
 
-    .install-line
-    {
-        width: 0;
-        position: absolute;
-        margin-left: 7.75rem;
-        border-left: 5px solid rgba(0, 0, 0, 0.1);
-        height: 200px;
-    }
 }
-/*--------S Breakpoint Finish--------*/
+/*--Sm Breakpoint Finish--*/
 
-/*--------M Breakpoint--------*/
+/*--Md Breakpoint--*/
 @media (min-width: 768px) and (max-width: 991.98px)
 {
     .sidenav .navbar-nav .dropdown-menu
     {
         left: 1rem !important;
     }
-
-    .dashboard-action
-    {
-        margin-left: 3rem !important;
-    }
 }
-/*--------M Breakpoint Finish--------*/
+/*--Md Breakpoint Finish--*/
 
-/*--------L Breakpoint--------*/
+/*--Lg Breakpoint--*/
 @media (min-width: 992px) and (max-width: 1199.98px)
 {
     .sidenav .navbar-nav .dropdown-menu
     {
         left: 1rem;
     }
-
-    .dashboard-action
-    {
-        margin-left: 1rem !important;
-    }
 }
-/*--------L Breakpoint Finish--------*/
-/*----------------RESPONSIVE END LINE----------------*/
-
+/*--Lg Breakpoint Finish--*/
+/*--------Responsive Finish--------*/

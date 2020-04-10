@@ -29,6 +29,7 @@ return [
     'add_payment'           => 'Añadir pago',
     'mark_paid'             => 'Marcar Como Pagada',
     'mark_sent'             => 'Marcar Como Enviada',
+    'mark_viewed'           => 'Marcar como visto',
     'download_pdf'          => 'Descargar PDF',
     'send_mail'             => 'Enviar Email',
     'all_invoices'          => 'Inicie sesión para ver todas las facturas',
@@ -37,13 +38,15 @@ return [
     'get_paid'              => 'Recibir Pago',
     'accept_payments'       => 'Aceptar Pagos Online',
 
-    'status' => [
+    'statuses' => [
         'draft'             => 'Borrador',
-        'sent'              => 'Enviado',
+        'sent'              => 'Enviada',
         'viewed'            => 'Visto',
-        'approved'          => 'Aprobado',
-        'partial'           => 'Parcial',
-        'paid'              => 'Pagado',
+        'approved'          => 'Aprobada',
+        'partial'           => 'Pago Parcial',
+        'paid'              => 'Pagada',
+        'overdue'           => 'Vencida',
+        'unpaid'            => 'No Pagada',
     ],
 
     'messages' => [

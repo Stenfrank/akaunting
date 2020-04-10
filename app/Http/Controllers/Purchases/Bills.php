@@ -8,6 +8,7 @@ use App\Http\Requests\Common\Import as ImportRequest;
 use App\Http\Requests\Purchase\Bill as Request;
 use App\Http\Requests\Purchase\BillAddItem as ItemRequest;
 use App\Imports\Purchases\Bills as Import;
+use App\Jobs\Banking\CreateDocumentTransaction;
 use App\Jobs\Purchase\CreateBill;
 use App\Jobs\Purchase\DeleteBill;
 use App\Jobs\Purchase\DuplicateBill;
@@ -16,11 +17,9 @@ use App\Models\Banking\Account;
 use App\Models\Common\Contact;
 use App\Models\Common\Item;
 use App\Models\Purchase\Bill;
-use App\Models\Purchase\BillHistory;
 use App\Models\Setting\Category;
 use App\Models\Setting\Currency;
 use App\Models\Setting\Tax;
-use App\Traits\Contacts;
 use App\Traits\Currencies;
 use App\Traits\DateTime;
 use App\Traits\Purchases;
@@ -29,7 +28,7 @@ use App\Utilities\Modules;
 
 class Bills extends Controller
 {
-    use Contacts, Currencies, DateTime, Purchases, Uploads;
+    use Currencies, DateTime, Purchases, Uploads;
 
     /**
      * Display a listing of the resource.
@@ -40,7 +39,7 @@ class Bills extends Controller
     {
         $bills = Bill::with(['contact', 'items', 'histories', 'transactions'])->collect(['billed_at'=> 'desc']);
 
-        $vendors = Contact::type($this->getVendorTypes())->enabled()->orderBy('name')->pluck('name', 'id');
+        $vendors = Contact::vendor()->enabled()->orderBy('name')->pluck('name', 'id');
 
         $categories = Category::type('expense')->enabled()->orderBy('name')->pluck('name', 'id');
 
@@ -66,13 +65,26 @@ class Bills extends Controller
 
         $account_currency_code = Account::where('id', setting('default.account'))->pluck('currency_code')->first();
 
-        $vendors = Contact::type($this->getVendorTypes())->enabled()->orderBy('name')->pluck('name', 'id');
+        $vendors = Contact::vendor()->enabled()->orderBy('name')->pluck('name', 'id');
 
         $categories = Category::type('expense')->enabled()->orderBy('name')->pluck('name', 'id');
 
         $payment_methods = Modules::getPaymentMethods();
 
         $date_format = $this->getCompanyDateFormat();
+
+        // Get Bill Totals
+        foreach ($bill->totals as $bill_total) {
+            $bill->{$bill_total->code} = $bill_total->amount;
+        }
+
+        $total = money($bill->total, $currency->code, true)->format();
+
+        $bill->grand_total = money($total, $currency->code)->getAmount();
+
+        if (!empty($bill->paid)) {
+            $bill->grand_total = round($bill->total - $bill->paid, $currency->precision) ;
+        }
 
         return view('purchases.bills.show', compact('bill', 'accounts', 'currencies', 'currency', 'account_currency_code', 'vendors', 'categories', 'payment_methods', 'date_format'));
     }
@@ -84,19 +96,21 @@ class Bills extends Controller
      */
     public function create()
     {
-        $vendors = Contact::type($this->getVendorTypes())->enabled()->orderBy('name')->pluck('name', 'id');
+        $vendors = Contact::vendor()->enabled()->orderBy('name')->pluck('name', 'id');
 
         $currencies = Currency::enabled()->orderBy('name')->pluck('name', 'code')->toArray();
 
         $currency = Currency::where('code', setting('default.currency'))->first();
 
-        $items = Item::enabled()->orderBy('name')->pluck('name', 'id');
+        $items = Item::enabled()->orderBy('name')->get();
 
-        $taxes = Tax::enabled()->orderBy('name')->get()->pluck('title', 'id');
+        $taxes = Tax::enabled()->orderBy('name')->get();
 
         $categories = Category::type('expense')->enabled()->orderBy('name')->pluck('name', 'id');
 
-        return view('purchases.bills.create', compact('vendors', 'currencies', 'currency', 'items', 'taxes', 'categories'));
+        $number = $this->getNextBillNumber();
+
+        return view('purchases.bills.create', compact('vendors', 'currencies', 'currency', 'items', 'taxes', 'categories', 'number'));
     }
 
     /**
@@ -111,7 +125,7 @@ class Bills extends Controller
         $response = $this->ajaxDispatch(new CreateBill($request));
 
         if ($response['success']) {
-            $response['redirect'] = route('bills.index');
+            $response['redirect'] = route('bills.show', $response['data']->id);
 
             $message = trans('messages.success.added', ['type' => trans_choice('general.bills', 1)]);
 
@@ -154,11 +168,11 @@ class Bills extends Controller
      */
     public function import(ImportRequest $request)
     {
-        $success = true;
+        try {
+            \Excel::import(new Import(), $request->file('import'));
+        } catch (\Maatwebsite\Excel\Exceptions\SheetNotFoundException $e) {
+            flash($e->getMessage())->error()->important();
 
-        \Excel::import(new Import(), $request->file('import'));
-
-        if (!$success) {
             return redirect()->route('import.create', ['purchases', 'bills']);
         }
 
@@ -178,15 +192,15 @@ class Bills extends Controller
      */
     public function edit(Bill $bill)
     {
-        $vendors = Contact::type($this->getVendorTypes())->enabled()->orderBy('name')->pluck('name', 'id');
+        $vendors = Contact::vendor()->enabled()->orderBy('name')->pluck('name', 'id');
 
         $currencies = Currency::enabled()->orderBy('name')->pluck('name', 'code')->toArray();
 
         $currency = Currency::where('code', $bill->currency_code)->first();
 
-        $items = Item::enabled()->orderBy('name')->pluck('name', 'id');
+        $items = Item::enabled()->orderBy('name')->get();
 
-        $taxes = Tax::enabled()->orderBy('name')->get()->pluck('title', 'id');
+        $taxes = Tax::enabled()->orderBy('name')->get();
 
         $categories = Category::type('expense')->enabled()->orderBy('name')->pluck('name', 'id');
 
@@ -206,7 +220,7 @@ class Bills extends Controller
         $response = $this->ajaxDispatch(new UpdateBill($bill, $request));
 
         if ($response['success']) {
-            $response['redirect'] = route('bills.index');
+            $response['redirect'] = route('bills.show', $response['data']->id);
 
             $message = trans('messages.success.updated', ['type' => trans_choice('general.bills', 1)]);
 
@@ -225,7 +239,7 @@ class Bills extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  $id
+     * @param  $bill
      *
      * @return Response
      */
@@ -255,7 +269,7 @@ class Bills extends Controller
      */
     public function export()
     {
-        return \Excel::download(new Export(), trans_choice('general.bills', 2) . '.xlsx');
+        return \Excel::download(new Export(), \Str::filename(trans_choice('general.bills', 2)) . '.xlsx');
     }
 
     /**
@@ -267,19 +281,27 @@ class Bills extends Controller
      */
     public function markReceived(Bill $bill)
     {
-        $bill->status = 'received';
-        $bill->save();
+        event(new \App\Events\Purchase\BillReceived($bill));
 
-        // Add bill history
-        BillHistory::create([
-            'company_id' => $bill->company_id,
-            'bill_id' => $bill->id,
-            'status' => 'received',
-            'notify' => 0,
-            'description' => trans('bills.mark_received'),
-        ]);
+        $message = trans('bills.messages.marked_received');
 
-        $message = trans('bills.messages.received');
+        flash($message)->success();
+
+        return redirect()->back();
+    }
+
+    /**
+     * Mark the bill as cancelled.
+     *
+     * @param  Bill $bill
+     *
+     * @return Response
+     */
+    public function markCancelled(Bill $bill)
+    {
+        event(new \App\Events\Purchase\BillCancelled($bill));
+
+        $message = trans('bills.messages.marked_cancelled');
 
         flash($message)->success();
 
@@ -326,6 +348,30 @@ class Bills extends Controller
         return $pdf->download($file_name);
     }
 
+    /**
+     * Mark the bill as paid.
+     *
+     * @param  Bill $bill
+     *
+     * @return Response
+     */
+    public function markPaid(Bill $bill)
+    {
+        try {
+            $this->dispatch(new CreateDocumentTransaction($bill, []));
+
+            $message = trans('bills.messages.marked_paid');
+
+            flash($message)->success();
+        } catch(\Exception $e) {
+            $message = $e->getMessage();
+
+            flash($message)->error();
+        }
+
+        return redirect()->back();
+    }
+
     public function addItem(ItemRequest $request)
     {
         $item_row = $request['item_row'];
@@ -367,7 +413,7 @@ class Bills extends Controller
             if ($bill->currency_code != $item->currency_code) {
                 $item->default_currency_code = $bill->currency_code;
 
-                $amount = $item->getAmountConvertedFromCustomDefault();
+                $amount = $item->getAmountConvertedFromDefault();
             }
 
             $paid += $amount;

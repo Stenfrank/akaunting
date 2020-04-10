@@ -24,14 +24,6 @@ class InvoiceReminder extends Command
      * @var string
      */
     protected $description = 'Send reminders for invoices';
-    
-    /**
-     * Create a new command instance.
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
 
     /**
      * Execute the console command.
@@ -40,6 +32,9 @@ class InvoiceReminder extends Command
      */
     public function handle()
     {
+        // Disable model cache
+        config(['laravel-model-caching.enabled' => false]);
+
         // Get all companies
         $companies = Company::enabled()->cursor();
 

@@ -4,27 +4,27 @@
 
 @section('new_button')
     @permission('create-banking-accounts')
-        <span><a href="{{ route('accounts.create') }}" class="btn btn-success btn-sm btn-alone"><span class="fa fa-plus"></span> &nbsp;{{ trans('general.add_new') }}</a></span>
+        <a href="{{ route('accounts.create') }}" class="btn btn-success btn-sm header-button-top"><span class="fa fa-plus"></span> &nbsp;{{ trans('general.add_new') }}</a>
     @endpermission
 @endsection
 
 @section('content')
     <div class="card">
-        <div class="card-header border-bottom-0" v-bind:class="[bulk_action.show ? 'bg-gradient-primary' : '']">
+        <div class="card-header border-bottom-0" :class="[{'bg-gradient-primary': bulk_action.show}]">
             {!! Form::open([
+                'method' => 'GET',
                 'route' => 'accounts.index',
                 'role' => 'form',
-                'method' => 'GET',
                 'class' => 'mb-0'
             ]) !!}
-                <div class="row" v-if="!bulk_action.show">
-                    <div class="col-12 d-flex align-items-center">
-                        <span class="font-weight-400 d-none d-lg-block mr-2">{{ trans('general.search') }}:</span>
-                        <akaunting-search></akaunting-search>
-                    </div>
+                <div class="align-items-center" v-if="!bulk_action.show">
+                    <akaunting-search
+                        :placeholder="'{{ trans('general.search_placeholder') }}'"
+                        :options="{{ json_encode([]) }}"
+                    ></akaunting-search>
                 </div>
 
-                {{ Form::bulkActionRowGroup('general.accounts', $bulk_actions, 'banking/accounts') }}
+                {{ Form::bulkActionRowGroup('general.accounts', $bulk_actions, ['group' => 'banking', 'type' => 'accounts']) }}
             {!! Form::close() !!}
         </div>
 
@@ -47,7 +47,7 @@
                             <td class="col-sm-2 col-md-1 col-lg-1 col-xl-1 d-none d-sm-block">
                                 {{ Form::bulkActionGroup($item->id, $item->name) }}
                             </td>
-                            <td class="col-xs-4 col-sm-4 col-md-3 col-lg-3 col-xl-2"><a class="text-success col-aka" href="{{ route('accounts.edit', $item->id) }}">{{ $item->name }}</a></td>
+                            <td class="col-xs-4 col-sm-4 col-md-3 col-lg-3 col-xl-2"><a class="col-aka" href="{{ route('accounts.edit', $item->id) }}">{{ $item->name }}</a></td>
                             <td class="col-md-2 col-lg-2 col-xl-3 d-none d-md-block text-left">{{ $item->number }}</td>
                             <td class="col-sm-2 col-md-2 col-lg-3 col-xl-4 d-none d-sm-block text-right">@money($item->balance, $item->currency_code, true)</td>
                             <td class="col-xs-4 col-sm-2 col-md-2 col-lg-2 col-xl-1">
@@ -55,13 +55,13 @@
                                     {{ Form::enabledGroup($item->id, $item->name, $item->enabled) }}
                                 @else
                                     @if ($item->enabled)
-                                        <badge rounded type="success">{{ trans('general.enabled') }}</badge>
+                                        <badge rounded type="success" class="mw-60">{{ trans('general.yes') }}</badge>
                                     @else
-                                        <badge rounded type="danger">{{ trans('general.disabled') }}</badge>
+                                        <badge rounded type="danger" class="mw-60">{{ trans('general.no') }}</badge>
                                     @endif
                                 @endif
                             </td>
-                            <td class="col-xs-4 col-sm-2 col-md-2 col-lg-1 col-xl-1 text-center border-0">
+                            <td class="col-xs-4 col-sm-2 col-md-2 col-lg-1 col-xl-1 text-center">
                                 <div class="dropdown">
                                     <a class="btn btn-neutral btn-sm text-light items-align-center py-2" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         <i class="fa fa-ellipsis-h text-muted"></i>
@@ -70,7 +70,7 @@
                                         <a class="dropdown-item" href="{{ route('accounts.edit', $item->id) }}">{{ trans('general.edit') }}</a>
                                         @permission('delete-banking-accounts')
                                             <div class="dropdown-divider"></div>
-                                            {!! Form::deleteLink($item, 'banking/accounts') !!}
+                                            {!! Form::deleteLink($item, 'accounts.destroy') !!}
                                         @endpermission
                                     </div>
                                 </div>

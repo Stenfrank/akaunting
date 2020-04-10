@@ -16,7 +16,7 @@ return [
     'tax_total'             => 'Imposto',
     'total'                 => 'Total',
 
-    'item_name'             => 'Nome do Item | Nome dos Items',
+    'item_name'             => 'Nome do Item|Nome dos Itens',
 
     'show_discount'         => ':discount% de desconto',
     'add_discount'          => 'Adicionar desconto',
@@ -28,6 +28,7 @@ return [
     'histories'             => 'Histórico',
     'payments'              => 'Pagamentos',
     'add_payment'           => 'Pagar Conta',
+    'mark_paid'             => 'Mark Paid',
     'mark_received'         => 'Marcar como Recebida',
     'download_pdf'          => 'Transferir em PDF',
     'send_mail'             => 'Enviar e-mail',
@@ -35,15 +36,18 @@ return [
     'receive_bill'          => 'Receber Conta',
     'make_payment'          => 'Fazer Pagamento',
 
-    'status' => [
+    'statuses' => [
         'draft'             => 'Rascunho',
-        'received'          => 'Recebido',
+        'received'          => 'Recebida',
         'partial'           => 'Parcial',
-        'paid'              => 'Pago',
+        'paid'              => 'Paga',
+        'overdue'           => 'Vencida',
+        'unpaid'            => 'Por Pagar',
     ],
 
     'messages' => [
         'received'          => 'Conta marcada como recebida com sucesso!',
+        'marked_paid'       => 'Bill marked as paid!',
         'draft'             => 'Isto é um <b>RASCUNHO</b> da conta e será refletida nos gráficos depois de recebida.',
 
         'status' => [

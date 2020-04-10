@@ -9,7 +9,7 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text"><i class="fa fa-search"></i></span>
                             </div>
-                            <input type="text" name="search" v-model="keyword" @input="onChange" v-click-outside="closeResult" class="form-control" autocomplete="off" placeholder="Search">
+                            <input type="text" name="search" v-model="keyword" @input="onChange" v-click-outside="closeResult" class="form-control" autocomplete="off" placeholder="{{ trans('general.search') }}">
                             <div class="dropdown-menu dropdown-menu-xl dropdown-menu-center" ref="menu" :class="[{show: show}]">
                                 <div class="list-group list-group-flush">
                                     <a class="list-group-item list-group-item-action" :href="item.href" v-for="(item, index) in items">
@@ -199,7 +199,7 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link pr-0" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                         <div class="media align-items-center">
-                            <img src="{{ asset('public/img/user.png') }}" height="36" width="36" alt="User"/>
+                            <img src="{{ asset('public/img/user.svg') }}" height="36" width="36" alt="User"/>
                             <div class="media-body ml-2 d-none d-lg-block">
                                 <span class="mb-0 text-sm  font-weight-bold">
                                     @if (!empty($user->name))

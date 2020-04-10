@@ -30,8 +30,8 @@
 
             @permission('update-common-dashboards')
                 <div class="card-footer">
-                    <div class="row float-right">
-                        {{ Form::saveButtons('common/dashboards') }}
+                    <div class="row save-buttons">
+                        {{ Form::saveButtons('dashboards.index') }}
                     </div>
                 </div>
             @endpermission

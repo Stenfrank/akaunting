@@ -2,12 +2,13 @@
 
 namespace App\Observers;
 
+use App\Abstracts\Observer;
 use App\Jobs\Purchase\CreateBillHistory;
 use App\Jobs\Sale\CreateInvoiceHistory;
 use App\Models\Banking\Transaction as Model;
 use App\Traits\Jobs;
 
-class Transaction
+class Transaction extends Observer
 {
     use Jobs;
 

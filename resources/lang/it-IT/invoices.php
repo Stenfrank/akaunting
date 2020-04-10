@@ -13,6 +13,7 @@ return [
     'price'                 => 'Prezzo',
     'sub_total'             => 'Subtotale',
     'discount'              => 'Sconto',
+    'item_discount'         => 'Linea Sconto',
     'tax_total'             => 'Totale imposte',
     'total'                 => 'Totale',
 
@@ -29,6 +30,8 @@ return [
     'add_payment'           => 'Aggiungere pagamento',
     'mark_paid'             => 'Segna come pagata',
     'mark_sent'             => 'Segna come inviata',
+    'mark_viewed'           => 'Segna come visto',
+    'mark_cancelled'        => 'Segna come annullata',
     'download_pdf'          => 'Scarica PDF',
     'send_mail'             => 'Invia email',
     'all_invoices'          => 'Accedi per visualizzare tutte le fatture',
@@ -37,19 +40,24 @@ return [
     'get_paid'              => 'Essere pagato',
     'accept_payments'       => 'Accetta pagamenti online',
 
-    'status' => [
+    'statuses' => [
         'draft'             => 'Bozza',
         'sent'              => 'Inviato',
         'viewed'            => 'Visto',
         'approved'          => 'Approvato',
         'partial'           => 'Parziale',
         'paid'              => 'Pagato',
+        'overdue'           => 'In Ritardo',
+        'unpaid'            => 'Non pagato',
+        'cancelled'         => 'Cancellato',
     ],
 
     'messages' => [
         'email_sent'        => 'E-mail di fattura inviata!',
         'marked_sent'       => 'Fattura segnata come inviata!',
         'marked_paid'       => 'Fattura contrassegnata come pagata!',
+        'marked_viewed'     => 'Fattura contrassegnata come vista!',
+        'marked_cancelled'  => 'Fattura contrassegnata come annullata!',
         'email_required'    => 'Nessun indirizzo email per questo cliente!',
         'draft'             => 'Questa è una <b>BOZZA</b> della fattura e si rifletterà sui grafici dopo che sarà inviata.',
 

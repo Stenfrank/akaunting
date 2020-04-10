@@ -7,12 +7,13 @@ return [
     'total_price'           => 'Precio Total',
     'due_date'              => 'Fecha de Vencimiento',
     'order_number'          => 'Número de Orden',
-    'bill_from'             => 'Recibo De',
+    'bill_from'             => 'Factura de',
 
     'quantity'              => 'Cantidad',
     'price'                 => 'Precio',
     'sub_total'             => 'Subtotal',
     'discount'              => 'Descuento',
+    'item_discount'         => 'Línea de descuento',
     'tax_total'             => 'Total de Impuestos',
     'total'                 => 'Total ',
 
@@ -28,22 +29,29 @@ return [
     'histories'             => 'Historial',
     'payments'              => 'Pagos',
     'add_payment'           => 'Añadir pago',
+    'mark_paid'             => 'Marcar Como Pagado',
     'mark_received'         => 'Marcar como Recibido',
+    'mark_cancelled'        => 'Marcar Como Cancelado',
     'download_pdf'          => 'Descargar archivo PDF',
     'send_mail'             => 'Enviar Correo Electrónico',
     'create_bill'           => 'Crear Recibo',
     'receive_bill'          => 'Recibir Recibo',
     'make_payment'          => 'Hacer Pago',
 
-    'status' => [
+    'statuses' => [
         'draft'             => 'Borrador',
         'received'          => 'Recibido',
         'partial'           => 'Parcial',
         'paid'              => 'Pagado',
+        'overdue'           => 'Vencido',
+        'unpaid'            => 'No Pagado',
+        'cancelled'         => 'Cancelado',
     ],
 
     'messages' => [
-        'received'          => '¡Recibo marcado como recibido con exitosamente!',
+        'marked_received'   => '¡Recibo marcada como recibido!',
+        'marked_paid'       => '¡Recibo marcado como pagado!',
+        'marked_cancelled'  => '¡Recibo marcado como cancelado!',
         'draft'             => 'Este es un borrador del recibo y será reflejado en los gráficos después de ser recibido.',
 
         'status' => [

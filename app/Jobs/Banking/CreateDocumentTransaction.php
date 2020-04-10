@@ -65,7 +65,7 @@ class CreateDocumentTransaction extends Job
 
         $this->request['type'] = ($this->model instanceof Invoice) ? 'income' : 'expense';
         $this->request['paid_at'] = isset($this->request['paid_at']) ? $this->request['paid_at'] : Date::now()->format('Y-m-d');
-        $this->request['amount'] = isset($this->request['amount']) ? $this->request['amount'] : ($this->model->amount - $this->getPaidAmount());
+        $this->request['amount'] = isset($this->request['amount']) ? $this->request['amount'] : ($this->model->amount - $this->model->paid);
         $this->request['currency_rate'] = $this->currency->rate;
         $this->request['account_id'] = isset($this->request['account_id']) ? $this->request['account_id'] : setting('default.account');
         $this->request['document_id'] = isset($this->request['document_id']) ? $this->request['document_id'] : $this->model->id;
@@ -92,7 +92,7 @@ class CreateDocumentTransaction extends Job
             $default_amount_model->currency_code         = $this->request['currency_code'];
             $default_amount_model->currency_rate         = $currencies[$this->request['currency_code']];
 
-            $default_amount = (double) $default_amount_model->getDivideConvertedAmount();
+            $default_amount = (double) $default_amount_model->getAmountConvertedToDefault();
 
             $convert_amount_model = new Transaction();
             $convert_amount_model->default_currency_code = $this->request['currency_code'];
@@ -100,10 +100,11 @@ class CreateDocumentTransaction extends Job
             $convert_amount_model->currency_code = $this->model->currency_code;
             $convert_amount_model->currency_rate = $currencies[$this->model->currency_code];
 
-            $amount = (double) $convert_amount_model->getAmountConvertedFromCustomDefault();
+            $amount = (double) $convert_amount_model->getAmountConvertedFromDefault();
         }
 
-        $total_amount -= $this->getPaidAmount();
+        $total_amount -= $this->model->paid;
+        unset($this->model->reconciled);
 
         // For amount cover integer
         $multiplier = 1;
@@ -125,7 +126,7 @@ class CreateDocumentTransaction extends Job
                 $error_amount_model->currency_code         = $this->model->currency_code;
                 $error_amount_model->currency_rate         = $currencies[$this->model->currency_code];
 
-                $error_amount = (double) $error_amount_model->getDivideConvertedAmount();
+                $error_amount = (double) $error_amount_model->getAmountConvertedToDefault();
 
                 $convert_amount_model = new Transaction();
                 $convert_amount_model->default_currency_code = $this->model->currency_code;
@@ -133,7 +134,7 @@ class CreateDocumentTransaction extends Job
                 $convert_amount_model->currency_code = $this->request['currency_code'];
                 $convert_amount_model->currency_rate = $currencies[$this->request['currency_code']];
 
-                $error_amount = (double) $convert_amount_model->getAmountConvertedFromCustomDefault();
+                $error_amount = (double) $convert_amount_model->getAmountConvertedFromDefault();
             }
 
             $message = trans('messages.error.over_payment', ['amount' => money($error_amount, $this->request['currency_code'], true)]);
@@ -144,45 +145,6 @@ class CreateDocumentTransaction extends Job
         }
 
         return true;
-    }
-
-    protected function getPaidAmount()
-    {
-        $paid = 0;
-
-        if (!$this->model->transactions->count()) {
-            return $paid;
-        }
-
-        $currencies = Currency::enabled()->pluck('rate', 'code')->toArray();
-
-        foreach ($this->model->transactions as $item) {
-            $default_amount = $item->amount;
-
-            if ($this->model->currency_code == $item->currency_code) {
-                $amount = (double) $default_amount;
-            } else {
-                $default_amount_model = new Transaction();
-                $default_amount_model->default_currency_code = $this->model->currency_code;
-                $default_amount_model->amount = $default_amount;
-                $default_amount_model->currency_code = $item->currency_code;
-                $default_amount_model->currency_rate = $currencies[$item->currency_code];
-
-                $default_amount = (double) $default_amount_model->getDivideConvertedAmount();
-
-                $convert_amount_model = new Transaction();
-                $convert_amount_model->default_currency_code = $item->currency_code;
-                $convert_amount_model->amount = $default_amount;
-                $convert_amount_model->currency_code = $this->model->currency_code;
-                $convert_amount_model->currency_rate = $currencies[$this->model->currency_code];
-
-                $amount = (double) $convert_amount_model->getAmountConvertedFromCustomDefault();
-            }
-
-            $paid += $amount;
-        }
-
-        return $paid;
     }
 
     protected function createHistory($transaction)

@@ -5,21 +5,19 @@ namespace App\Listeners\Update\V20;
 use App\Abstracts\Listeners\Update as Listener;
 use App\Events\Install\UpdateFinished as Event;
 use App\Models\Auth\User;
-use App\Models\Auth\Role;
-use App\Models\Auth\Permission;
-use App\Models\Banking\Transaction;
 use App\Models\Common\Company;
-use App\Models\Common\Contact;
-use App\Models\Common\EmailTemplate;
-use App\Models\Common\Report;
+use App\Traits\Permissions;
+use App\Utilities\Installer;
 use App\Utilities\Overrider;
-use Artisan;
-use DB;
-use File;
-use Schema;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 
 class Version200 extends Listener
 {
+    use Permissions;
+
     const ALIAS = 'core';
 
     const VERSION = '2.0.0';
@@ -36,14 +34,13 @@ class Version200 extends Listener
             return;
         }
 
-        // Cache Clear
-        Artisan::call('cache:clear');
-
         $this->updateDatabase();
 
         $this->updateCompanies();
 
         $this->createDashboards();
+
+        $this->copyContacts();
 
         $this->copyTransactions();
 
@@ -51,13 +48,13 @@ class Version200 extends Listener
 
         $this->updateBills();
 
-        $this->copyContacts();
-
         $this->updateModules();
 
         $this->updatePermissions();
 
         $this->deleteOldFiles();
+
+        $this->updateEnv();
     }
 
     public function updateDatabase()
@@ -75,9 +72,11 @@ class Version200 extends Listener
     {
         $company_id = session('company_id');
 
-        $companies = Company::enabled()->cursor();
+        $companies = Company::cursor();
 
         foreach ($companies as $company) {
+            session(['company_id' => $company->id]);
+
             $this->updateSettings($company);
 
             $this->createEmailTemplates($company);
@@ -94,18 +93,24 @@ class Version200 extends Listener
 
     public function updateSettings($company)
     {
-        // Clear current settings
+        // Set the active company settings
+        setting()->setExtraColumns(['company_id' => $company->id]);
         setting()->forgetAll();
+        setting()->load(true);
 
-        session(['company_id' => $company->id]);
-
-        Overrider::load('settings');
+        // Override settings
+        config(['app.url' => url('/')]);
+        config(['app.timezone' => setting('general.timezone', 'UTC')]);
+        date_default_timezone_set(config('app.timezone'));
+        app()->setLocale(setting('general.default_locale'));
 
         $updated_settings = [
             'company.name'                      => 'general.company_name',
             'company.email'                     => 'general.company_email',
             'company.address'                   => 'general.company_address',
             'company.logo'                      => 'general.company_logo',
+            'company.phone'                     => 'general.company_phone',
+            'company.tax_number'                => 'general.company_tax_number',
             'localisation.financial_start'      => 'general.financial_start',
             'localisation.timezone'             => 'general.timezone',
             'localisation.date_format'          => 'general.date_format',
@@ -115,25 +120,29 @@ class Version200 extends Listener
             'invoice.number_digit'              => 'general.invoice_number_digit',
             'invoice.number_next'               => 'general.invoice_number_next',
             'invoice.item_name'                 => 'general.invoice_item',
+            'invoice.item_input'                => 'general.invoice_item_input',
             'invoice.price_name'                => 'general.invoice_price',
+            'invoice.price_input'               => 'general.invoice_price_input',
             'invoice.quantity_name'             => 'general.invoice_quantity',
+            'invoice.quantity_input'            => 'general.invoice_quantity_input',
             'invoice.title'                     => trans_choice('general.invoices', 1),
             'invoice.payment_terms'             => '0',
             'invoice.template'                  => 'default',
             'invoice.color'                     => '#55588b',
             'default.account'                   => 'general.default_account',
             'default.currency'                  => 'general.default_currency',
+            'default.tax'                       => 'general.default_tax',
             'default.locale'                    => 'general.default_locale',
             'default.list_limit'                => 'general.list_limit',
             'default.payment_method'            => 'general.default_payment_method',
             'default.use_gravatar'              => 'general.use_gravatar',
             'email.protocol'                    => 'general.email_protocol',
             'email.sendmail_path'               => 'general.email_sendmail_path',
-            'email.smtp_host'                   => 'general.smtp_host',
-            'email.smtp_port'                   => 'general.smtp_port',
-            'email.smtp_username'               => 'general.smtp_username',
-            'email.smtp_password'               => 'general.smtp_password',
-            'email.smtp_encryption'             => 'general.smtp_encryption',
+            'email.smtp_host'                   => 'general.email_smtp_host',
+            'email.smtp_port'                   => 'general.email_smtp_port',
+            'email.smtp_username'               => 'general.email_smtp_username',
+            'email.smtp_password'               => 'general.email_smtp_password',
+            'email.smtp_encryption'             => 'general.email_smtp_encryption',
             'schedule.send_invoice_reminder'    => 'general.send_invoice_reminder',
             'schedule.invoice_days'             => 'general.schedule_invoice_days',
             'schedule.send_bill_reminder'       => 'general.send_bill_reminder',
@@ -150,29 +159,34 @@ class Version200 extends Listener
             switch($new) {
                 case 'offline-payments.methods':
                 case 'default.payment_method':
-                    $value = str_replace('offlinepayment.', 'offline-payments.', setting($old));
+                    $value = str_replace('offlinepayment.', 'offline-payments.', setting($old, 'missing_old_setting_value'));
 
                     break;
                 case 'invoice.title':
                 case 'invoice.payment_terms':
                 case 'invoice.template':
+                case 'invoice.color':
                 case 'contact.type.customer':
                 case 'contact.type.vendor':
                     $value = $old;
 
                     break;
                 default:
-                    $value = setting($old);
+                    $value = setting($old, 'missing_old_setting_value');
 
                     break;
             }
 
-            if (($value != '0') && empty($value)) {
+            if ($value == 'missing_old_setting_value') {
                 continue;
             }
 
             setting()->set([$new => $value]);
             setting()->forget($old);
+        }
+
+        if ($invoice_logo = setting('general.invoice_logo')) {
+            setting()->set(['company.logo' => $invoice_logo]);
         }
 
         $removed_settings = [
@@ -183,6 +197,10 @@ class Version200 extends Listener
             'general.file_types',
             'general.send_item_reminder',
             'general.schedule_item_stocks',
+            'general.invoice_prefix',
+            'general.invoice_digit',
+            'general.invoice_start',
+            'general.invoice_logo',
         ];
 
         foreach ($removed_settings as $removed_setting) {
@@ -194,125 +212,184 @@ class Version200 extends Listener
 
     public function createEmailTemplates($company)
     {
-        $templates = [
-            [
-                'alias' => 'invoice_new_customer',
-                'class' => 'App\Notifications\Sale\Invoice',
-                'name' => 'settings.email.templates.invoice_new_customer',
-            ],
-            [
-                'alias' => 'invoice_remind_customer',
-                'class' => 'App\Notifications\Sale\Invoice',
-                'name' => 'settings.email.templates.invoice_remind_customer',
-            ],
-            [
-                'alias' => 'invoice_remind_admin',
-                'class' => 'App\Notifications\Sale\Invoice',
-                'name' => 'settings.email.templates.invoice_remind_admin',
-            ],
-            [
-                'alias' => 'invoice_recur_customer',
-                'class' => 'App\Notifications\Sale\Invoice',
-                'name' => 'settings.email.templates.invoice_recur_customer',
-            ],
-            [
-                'alias' => 'invoice_recur_admin',
-                'class' => 'App\Notifications\Sale\Invoice',
-                'name' => 'settings.email.templates.invoice_recur_admin',
-            ],
-            [
-                'alias' => 'invoice_payment_customer',
-                'class' => 'App\Notifications\Portal\PaymentReceived',
-                'name' => 'settings.email.templates.invoice_payment_customer',
-            ],
-            [
-                'alias' => 'invoice_payment_admin',
-                'class' => 'App\Notifications\Portal\PaymentReceived',
-                'name' => 'settings.email.templates.invoice_payment_admin',
-            ],
-            [
-                'alias' => 'bill_remind_admin',
-                'class' => 'App\Notifications\Purchase\Bill',
-                'name' => 'settings.email.templates.bill_remind_admin',
-            ],
-            [
-                'alias' => 'bill_recur_admin',
-                'class' => 'App\Notifications\Purchase\Bill',
-                'name' => 'settings.email.templates.bill_recur_admin',
-            ],
-        ];
-
-        foreach ($templates as $template) {
-            EmailTemplate::create([
-                'company_id' => $company->id,
-                'alias' => $template['alias'],
-                'class' => $template['class'],
-                'name' => $template['name'],
-                'subject' => trans('email_templates.' . $template['alias'] . '.subject'),
-                'body' => trans('email_templates.' . $template['alias'] . '.body'),
-            ]);
-        }
+        Artisan::call('company:seed', [
+            'company' => $company->id,
+            '--class' => 'Database\Seeds\EmailTemplates',
+        ]);
     }
 
     public function createReports($company)
     {
-        $rows = [
-            [
-                'company_id' => $company->id,
-                'class' => 'App\Reports\IncomeSummary',
-                'name' => trans('reports.summary.income'),
-                'description' => trans('demo.reports.income'),
-                'settings' => ['group' => 'category', 'period' => 'monthly', 'basis' => 'accrual', 'chart' => 'line'],
-            ],
-            [
-                'company_id' => $company->id,
-                'class' => 'App\Reports\ExpenseSummary',
-                'name' => trans('reports.summary.expense'),
-                'description' => trans('demo.reports.expense'),
-                'settings' => ['group' => 'category', 'period' => 'monthly', 'basis' => 'accrual', 'chart' => 'line'],
-            ],
-            [
-                'company_id' => $company->id,
-                'class' => 'App\Reports\IncomeExpenseSummary',
-                'name' => trans('reports.summary.income_expense'),
-                'description' => trans('demo.reports.income_expense'),
-                'settings' => ['group' => 'category', 'period' => 'monthly', 'basis' => 'accrual', 'chart' => 'line'],
-            ],
-            [
-                'company_id' => $company->id,
-                'class' => 'App\Reports\ProfitLoss',
-                'name' => trans('reports.profit_loss'),
-                'description' => trans('demo.reports.profit_loss'),
-                'settings' => ['group' => 'category', 'period' => 'quarterly', 'basis' => 'accrual', 'chart' => '0'],
-            ],
-            [
-                'company_id' => $company->id,
-                'class' => 'App\Reports\TaxSummary',
-                'name' => trans('reports.summary.tax'),
-                'description' => trans('demo.reports.tax'),
-                'settings' => ['group' => 'category', 'period' => 'quarterly', 'basis' => 'accrual', 'chart' => '0'],
-            ],
-        ];
-
-        foreach ($rows as $row) {
-            Report::create($row);
-        }
+        Artisan::call('company:seed', [
+            'company' => $company->id,
+            '--class' => 'Database\Seeds\Reports',
+        ]);
     }
 
     public function createDashboards()
     {
-        $users = User::enabled()->cursor();
+        $users = User::cursor();
 
         foreach ($users as $user) {
             $companies = $user->companies;
 
             foreach ($companies as $company) {
+                app()->setLocale($company->locale);
+
                 Artisan::call('user:seed', [
                     'user' => $user->id,
                     'company' => $company->id,
                 ]);
             }
         }
+    }
+
+    public function copyContacts()
+    {
+        $this->copyCustomers();
+
+        $this->copyVendors();
+    }
+
+    public function copyCustomers()
+    {
+        $contacts = [];
+
+        $customers = DB::table('customers')->cursor();
+
+        $has_estimates = Schema::hasTable('estimates');
+        $has_crm_companies = Schema::hasTable('crm_companies');
+        $has_crm_contacts = Schema::hasTable('crm_contacts');
+        $has_idea_soft_histories = Schema::hasTable('idea_soft_histories');
+        $has_custom_fields_field_values = Schema::hasTable('custom_fields_field_values');
+
+        foreach ($customers as $customer) {
+            $data = (array) $customer;
+            $data['type'] = 'customer';
+            unset($data['id']);
+
+            $contact_id = DB::table('contacts')->insertGetId($data);
+
+            $contacts[$customer->id] = $contact_id;
+        }
+
+        $contacts = array_reverse($contacts, true);
+
+        foreach ($contacts as $customer_id => $contact_id) {
+
+            DB::table('invoices')
+                ->where('contact_id', $customer_id)
+                ->update([
+                    'contact_id' => $contact_id,
+                ]);
+
+            DB::table('revenues')
+                ->where('customer_id', $customer_id)
+                ->update([
+                    'customer_id' => $contact_id,
+                ]);
+
+            if ($has_estimates) {
+                DB::table('estimates')
+                    ->where('customer_id', $customer_id)
+                    ->update([
+                        'customer_id' => $contact_id,
+                    ]);
+            }
+
+            if ($has_crm_companies) {
+                DB::table('crm_companies')
+                    ->where('core_customer_id', $customer_id)
+                    ->update([
+                        'core_customer_id' => $contact_id,
+                    ]);
+            }
+
+            if ($has_crm_contacts) {
+                DB::table('crm_contacts')
+                    ->where('core_customer_id', $customer_id)
+                    ->update([
+                        'core_customer_id' => $contact_id,
+                    ]);
+            }
+
+            if ($has_idea_soft_histories) {
+                DB::table('idea_soft_histories')
+                    ->where('model_id', $customer_id)
+                    ->where('model_type', 'App\Models\Income\Customer')
+                    ->update([
+                        'model_id' => $contact_id,
+                        'model_type' => 'App\Models\Common\Contact',
+                    ]);
+            }
+
+            if ($has_custom_fields_field_values) {
+                DB::table('custom_fields_field_values')
+                    ->where('model_id', $customer_id)
+                    ->where('model_type', 'App\Models\Income\Customer')
+                    ->update([
+                        'model_id' => $contact_id,
+                        'model_type' => 'App\Models\Common\Contact',
+                    ]);
+            }
+        }
+
+        Schema::drop('customers');
+    }
+
+    public function copyVendors()
+    {
+        $contacts = [];
+
+        $vendors = DB::table('vendors')->cursor();
+
+        $has_custom_fields_field_values = Schema::hasTable('custom_fields_field_values');
+
+        foreach ($vendors as $vendor) {
+            $data = (array) $vendor;
+            $data['type'] = 'vendor';
+            unset($data['id']);
+
+            $contact_id = DB::table('contacts')->insertGetId($data);
+
+            $contacts[$vendor->id] = $contact_id;
+        }
+
+        $contacts = array_reverse($contacts, true);
+
+        foreach ($contacts as $vendor_id => $contact_id) {
+            DB::table('bills')
+                ->where('contact_id', $vendor_id)
+                ->update([
+                    'contact_id' => $contact_id,
+                ]);
+
+            DB::table('payments')
+                ->where('vendor_id', $vendor_id)
+                ->update([
+                    'vendor_id' => $contact_id,
+                ]);
+
+            DB::table('mediables')
+                ->where('mediable_id', $vendor_id)
+                ->where('mediable_type', 'App\Models\Expense\Vendor')
+                ->update([
+                    'mediable_id' => $contact_id,
+                    'mediable_type' => 'App\Models\Common\Contact',
+                ]);
+
+            if ($has_custom_fields_field_values) {
+                DB::table('custom_fields_field_values')
+                    ->where('model_id', $vendor_id)
+                    ->where('model_type', 'App\Models\Expense\Vendor')
+                    ->update([
+                        'model_id' => $contact_id,
+                        'model_type' => 'App\Models\Common\Contact',
+                    ]);
+            }
+        }
+
+        Schema::drop('vendors');
     }
 
     public function copyTransactions()
@@ -330,12 +407,18 @@ class Version200 extends Listener
     {
         $invoice_payments = DB::table('invoice_payments')->cursor();
 
+        $has_double_entry_ledger = Schema::hasTable('double_entry_ledger');
+
         foreach ($invoice_payments as $invoice_payment) {
             $invoice = DB::table('invoices')->where('id', $invoice_payment->invoice_id)->first();
 
+            if (empty($invoice)) {
+                continue;
+            }
+
             $payment_method = str_replace('offlinepayment.', 'offline-payments.', $invoice_payment->payment_method);
 
-            $transaction = $this->create(new Transaction(), [
+            $transaction_id = DB::table('transactions')->insertGetId([
                 'company_id' => $invoice_payment->company_id,
                 'type' => 'income',
                 'account_id' => $invoice_payment->account_id,
@@ -356,26 +439,32 @@ class Version200 extends Listener
                 'deleted_at' => $invoice_payment->deleted_at,
             ]);
 
-            if (Schema::hasTable('double_entry_ledger')) {
+            if ($has_double_entry_ledger) {
                 DB::table('double_entry_ledger')
                     ->where('ledgerable_id', $invoice_payment->id)
                     ->where('ledgerable_type', 'App\Models\Income\InvoicePayment')
                     ->update([
-                        'ledgerable_id' => $transaction->id,
+                        'ledgerable_id' => $transaction_id,
                         'ledgerable_type' => 'App\Models\Banking\Transaction',
                     ]);
             }
         }
 
-        DB::table('invoice_payments')->delete();
+        Schema::drop('invoice_payments');
     }
 
     public function copyRevenues()
     {
         $revenues = DB::table('revenues')->cursor();
 
+        $has_double_entry_ledger = Schema::hasTable('double_entry_ledger');
+        $has_project_revenues = Schema::hasTable('project_revenues');
+        $has_custom_fields_field_values = Schema::hasTable('custom_fields_field_values');
+
         foreach ($revenues as $revenue) {
-            $transaction = $this->create(new Transaction(), [
+            $payment_method = str_replace('offlinepayment.', 'offline-payments.', $revenue->payment_method);
+
+            $transaction_id = DB::table('transactions')->insertGetId([
                 'company_id' => $revenue->company_id,
                 'type' => 'income',
                 'account_id' => $revenue->account_id,
@@ -386,7 +475,7 @@ class Version200 extends Listener
                 'contact_id' => $revenue->customer_id,
                 'description' => $revenue->description,
                 'category_id' => $revenue->category_id,
-                'payment_method' => $revenue->payment_method,
+                'payment_method' => $payment_method,
                 'reference' => $revenue->reference,
                 'parent_id' => $revenue->parent_id,
                 'reconciled' => $revenue->reconciled,
@@ -396,16 +485,16 @@ class Version200 extends Listener
             ]);
 
             DB::table('transfers')
-                ->where('expense_transaction_id', $revenue->id)
+                ->where('income_transaction_id', $revenue->id)
                 ->update([
-                    'expense_transaction_id' => $transaction->id,
+                    'income_transaction_id' => $transaction_id,
                 ]);
 
             DB::table('recurring')
                 ->where('recurable_id', $revenue->id)
                 ->where('recurable_type', 'App\Models\Income\Revenue')
                 ->update([
-                    'recurable_id' => $transaction->id,
+                    'recurable_id' => $transaction_id,
                     'recurable_type' => 'App\Models\Banking\Transaction',
                 ]);
 
@@ -413,42 +502,58 @@ class Version200 extends Listener
                 ->where('mediable_id', $revenue->id)
                 ->where('mediable_type', 'App\Models\Income\Revenue')
                 ->update([
-                    'mediable_id' => $transaction->id,
+                    'mediable_id' => $transaction_id,
                     'mediable_type' => 'App\Models\Banking\Transaction',
                 ]);
 
-            if (Schema::hasTable('double_entry_ledger')) {
+            if ($has_double_entry_ledger) {
                 DB::table('double_entry_ledger')
                     ->where('ledgerable_id', $revenue->id)
                     ->where('ledgerable_type', 'App\Models\Income\Revenue')
                     ->update([
-                        'ledgerable_id' => $transaction->id,
+                        'ledgerable_id' => $transaction_id,
                         'ledgerable_type' => 'App\Models\Banking\Transaction',
                     ]);
             }
 
-            if (Schema::hasTable('project_revenues')) {
+            if ($has_project_revenues) {
                 DB::table('project_revenues')
                     ->where('revenue_id', $revenue->id)
                     ->update([
-                        'revenue_id' => $transaction->id,
+                        'revenue_id' => $transaction_id,
+                    ]);
+            }
+
+            if ($has_custom_fields_field_values) {
+                DB::table('custom_fields_field_values')
+                    ->where('model_id', $revenue->id)
+                    ->where('model_type', 'App\Models\Income\Revenue')
+                    ->update([
+                        'model_id' => $transaction_id,
+                        'model_type' => 'App\Models\Banking\Transaction',
                     ]);
             }
         }
 
-        DB::table('revenues')->delete();
+        Schema::drop('revenues');
     }
 
     public function copyBillPayments()
     {
         $bill_payments = DB::table('bill_payments')->cursor();
 
+        $has_double_entry_ledger = Schema::hasTable('double_entry_ledger');
+
         foreach ($bill_payments as $bill_payment) {
             $bill = DB::table('bills')->where('id', $bill_payment->bill_id)->first();
 
+            if (empty($bill)) {
+                continue;
+            }
+
             $payment_method = str_replace('offlinepayment.', 'offline-payments.', $bill_payment->payment_method);
 
-            $transaction = $this->create(new Transaction(), [
+            $transaction_id = DB::table('transactions')->insertGetId([
                 'company_id' => $bill_payment->company_id,
                 'type' => 'expense',
                 'account_id' => $bill_payment->account_id,
@@ -469,26 +574,33 @@ class Version200 extends Listener
                 'deleted_at' => $bill_payment->deleted_at,
             ]);
 
-            if (Schema::hasTable('double_entry_ledger')) {
+            if ($has_double_entry_ledger) {
                 DB::table('double_entry_ledger')
                     ->where('ledgerable_id', $bill_payment->id)
                     ->where('ledgerable_type', 'App\Models\Expense\BillPayment')
                     ->update([
-                        'ledgerable_id' => $transaction->id,
+                        'ledgerable_id' => $transaction_id,
                         'ledgerable_type' => 'App\Models\Banking\Transaction',
                     ]);
             }
         }
 
-        DB::table('bill_payments')->delete();
+        Schema::drop('bill_payments');
     }
 
     public function copyPayments()
     {
         $payments = DB::table('payments')->cursor();
 
+        $has_double_entry_ledger = Schema::hasTable('double_entry_ledger');
+        $has_project_payments = Schema::hasTable('project_payments');
+        $has_receipts = Schema::hasTable('receipts');
+        $has_custom_fields_field_values = Schema::hasTable('custom_fields_field_values');
+
         foreach ($payments as $payment) {
-            $transaction = $this->create(new Transaction(), [
+            $payment_method = str_replace('offlinepayment.', 'offline-payments.', $payment->payment_method);
+
+            $transaction_id = DB::table('transactions')->insertGetId([
                 'company_id' => $payment->company_id,
                 'type' => 'expense',
                 'account_id' => $payment->account_id,
@@ -499,7 +611,7 @@ class Version200 extends Listener
                 'contact_id' => $payment->vendor_id,
                 'description' => $payment->description,
                 'category_id' => $payment->category_id,
-                'payment_method' => $payment->payment_method,
+                'payment_method' => $payment_method,
                 'reference' => $payment->reference,
                 'parent_id' => $payment->parent_id,
                 'reconciled' => $payment->reconciled,
@@ -511,14 +623,14 @@ class Version200 extends Listener
             DB::table('transfers')
                 ->where('expense_transaction_id', $payment->id)
                 ->update([
-                    'expense_transaction_id' => $transaction->id,
+                    'expense_transaction_id' => $transaction_id,
                 ]);
 
             DB::table('recurring')
                 ->where('recurable_id', $payment->id)
                 ->where('recurable_type', 'App\Models\Expense\Payment')
                 ->update([
-                    'recurable_id' => $transaction->id,
+                    'recurable_id' => $transaction_id,
                     'recurable_type' => 'App\Models\Banking\Transaction',
                 ]);
 
@@ -526,38 +638,48 @@ class Version200 extends Listener
                 ->where('mediable_id', $payment->id)
                 ->where('mediable_type', 'App\Models\Expense\Payment')
                 ->update([
-                    'mediable_id' => $transaction->id,
+                    'mediable_id' => $transaction_id,
                     'mediable_type' => 'App\Models\Banking\Transaction',
                 ]);
 
-            if (Schema::hasTable('double_entry_ledger')) {
+            if ($has_double_entry_ledger) {
                 DB::table('double_entry_ledger')
                     ->where('ledgerable_id', $payment->id)
                     ->where('ledgerable_type', 'App\Models\Expense\Payment')
                     ->update([
-                        'ledgerable_id' => $transaction->id,
+                        'ledgerable_id' => $transaction_id,
                         'ledgerable_type' => 'App\Models\Banking\Transaction',
                     ]);
             }
 
-            if (Schema::hasTable('project_payments')) {
+            if ($has_project_payments) {
                 DB::table('project_payments')
                     ->where('payment_id', $payment->id)
                     ->update([
-                        'payment_id' => $transaction->id,
+                        'payment_id' => $transaction_id,
                     ]);
             }
 
-            if (Schema::hasTable('receipts')) {
+            if ($has_receipts) {
                 DB::table('receipts')
                     ->where('payment_id', $payment->id)
                     ->update([
-                        'payment_id' => $transaction->id,
+                        'payment_id' => $transaction_id,
+                    ]);
+            }
+
+            if ($has_custom_fields_field_values) {
+                DB::table('custom_fields_field_values')
+                    ->where('model_id', $payment->id)
+                    ->where('model_type', 'App\Models\Expense\Payment')
+                    ->update([
+                        'model_id' => $transaction_id,
+                        'model_type' => 'App\Models\Banking\Transaction',
                     ]);
             }
         }
 
-        DB::table('payments')->delete();
+        Schema::drop('payments');
     }
 
     public function updateInvoices()
@@ -573,14 +695,6 @@ class Version200 extends Listener
             ->update([
                 'mediable_type' => 'App\Models\Sale\Invoice',
             ]);
-
-        if (Schema::hasTable('double_entry_ledger')) {
-            DB::table('double_entry_ledger')
-                ->where('ledgerable_type', 'App\Models\Income\Invoice')
-                ->update([
-                    'ledgerable_type' => 'App\Models\Sale\Invoice',
-                ]);
-        }
     }
 
     public function updateBills()
@@ -596,113 +710,6 @@ class Version200 extends Listener
             ->update([
                 'mediable_type' => 'App\Models\Purchase\Bill',
             ]);
-
-        DB::table('mediables')
-            ->where('mediable_type', 'App\Models\Expense\Vendor')
-            ->update([
-                'mediable_type' => 'App\Models\Purchase\Vendor',
-            ]);
-
-        if (Schema::hasTable('double_entry_ledger')) {
-            DB::table('double_entry_ledger')
-                ->where('ledgerable_type', 'App\Models\Expense\Bill')
-                ->update([
-                    'ledgerable_type' => 'App\Models\Purchase\Bill',
-                ]);
-        }
-    }
-
-    public function copyContacts()
-    {
-        $this->copyCustomers();
-
-        $this->copyVendors();
-    }
-
-    public function copyCustomers()
-    {
-        $customers = DB::table('customers')->cursor();
-
-        foreach ($customers as $customer) {
-            $data = (array) $customer;
-            $data['type'] = 'customer';
-
-            $contact = $this->create(new Contact(), $data);
-
-            DB::table('invoices')
-                ->where('contact_id', $customer->id)
-                ->update([
-                    'contact_id' => $contact->id,
-                ]);
-
-            DB::table('transactions')
-                ->where('contact_id', $customer->id)
-                ->update([
-                    'contact_id' => $contact->id,
-                ]);
-
-            if (Schema::hasTable('estimates')) {
-                DB::table('estimates')
-                    ->where('customer_id', $customer->id)
-                    ->update([
-                        'customer_id' => $contact->id,
-                    ]);
-            }
-
-            if (Schema::hasTable('crm_companies')) {
-                DB::table('crm_companies')
-                    ->where('core_customer_id', $customer->id)
-                    ->update([
-                        'core_customer_id' => $contact->id,
-                    ]);
-            }
-
-            if (Schema::hasTable('crm_contacts')) {
-                DB::table('crm_contacts')
-                    ->where('core_customer_id', $customer->id)
-                    ->update([
-                        'core_customer_id' => $contact->id,
-                    ]);
-            }
-
-            if (Schema::hasTable('idea_soft_histories')) {
-                DB::table('idea_soft_histories')
-                    ->where('model_id', $customer->id)
-                    ->where('model_type', 'App\Models\Income\Customer')
-                    ->update([
-                        'model_id' => $contact->id,
-                        'model_type' => 'App\Models\Common\Contact',
-                    ]);
-            }
-        }
-
-        DB::table('customers')->delete();
-    }
-
-    public function copyVendors()
-    {
-        $vendors = DB::table('vendors')->cursor();
-
-        foreach ($vendors as $vendor) {
-            $data = (array) $vendor;
-            $data['type'] = 'vendor';
-
-            $contact = $this->create(new Contact(), $data);
-
-            DB::table('bills')
-                ->where('contact_id', $vendor->id)
-                ->update([
-                    'contact_id' => $contact->id,
-                ]);
-
-            DB::table('transactions')
-                ->where('contact_id', $vendor->id)
-                ->update([
-                    'contact_id' => $contact->id,
-                ]);
-        }
-
-        DB::table('vendors')->delete();
     }
 
     public function updateModules()
@@ -722,7 +729,7 @@ class Version200 extends Listener
 
     public function updatePermissions()
     {
-        $this->attachPermissions([
+        $this->attachPermissionsByRoleNames([
             'admin' => [
                 'common-dashboards' => 'c,r,u,d',
                 'common-reports' => 'c,r,u,d',
@@ -731,7 +738,6 @@ class Version200 extends Listener
                 'modules-api-key' => 'c,u',
                 'offline-payments-settings' => 'r,u,d',
                 'paypal-standard-settings' => 'r,u',
-                'settings-appearance' => 'r,u',
                 'settings-company' => 'r',
                 'settings-defaults' => 'r',
                 'settings-email' => 'r',
@@ -781,7 +787,7 @@ class Version200 extends Listener
             ],
         ]);
 
-        $this->detachPermissions([
+        $this->detachPermissionsByRoleNames([
             'admin' => [
                 'read-modules-token',
                 'update-modules-token',
@@ -838,84 +844,6 @@ class Version200 extends Listener
         ]);
     }
 
-    public function attachPermissions($items)
-    {
-        $map = collect([
-            'c' => 'create',
-            'r' => 'read',
-            'u' => 'update',
-            'd' => 'delete'
-        ]);
-
-        foreach ($items as $role_name => $modules) {
-            $role = Role::where('name', $role_name)->first();
-
-            // Reading role permission modules
-            foreach ($modules as $module => $value) {
-                $permissions = explode(',', $value);
-
-                foreach ($permissions as $p => $perm) {
-                    $permissionValue = $map->get($perm);
-
-                    $moduleName = ucwords(str_replace("-", " ", $module));
-
-                    $permission = Permission::firstOrCreate([
-                        'name' => $permissionValue . '-' . $module,
-                        'display_name' => ucfirst($permissionValue) . ' ' . $moduleName,
-                        'description' => ucfirst($permissionValue) . ' ' . $moduleName,
-                    ]);
-
-                    if ($role->hasPermission($permission->name)) {
-                        continue;
-                    }
-
-                    $role->attachPermission($permission);
-                }
-            }
-        }
-    }
-
-    public function detachPermissions($items)
-    {
-        foreach ($items as $role_name => $permissions) {
-            $role = Role::where('name', $role_name)->first();
-
-            foreach ($permissions as $permission_name) {
-                $permission = Permission::where('name', $permission_name)->first();
-
-                if (empty($permission)) {
-                    continue;
-                }
-
-                $role->detachPermission($permission);
-                $permission->delete();
-            }
-        }
-    }
-
-    public function updatePermissionNames($items)
-    {
-        $prefixes = [
-            'create',
-            'read',
-            'update',
-            'delete',
-        ];
-
-        foreach ($items as $old => $new) {
-            foreach ($prefixes as $prefix) {
-                $old_name = $prefix . '-' . $old;
-                $new_name = $prefix . '-' . $new;
-
-                DB::table('permissions')
-                    ->where('name', $old_name)
-                    ->update([
-                        'name' => $new_name,
-                    ]);
-            }
-        }
-    }
-
     public function deleteOldFiles()
     {
         $files = [
@@ -951,6 +879,7 @@ class Version200 extends Listener
             'app/Http/Controllers/Modals/InvoicePayments.php',
             'app/Http/Controllers/modules/Token.php',
             'app/Http/Middleware/CustomerMenu.php',
+            'app/Http/Middleware/RedirectIfWizardCompleted.php',
             'app/Http/Middleware/SignedUrlCompany.php',
             'app/Http/Requests/Expense/BillPayment.php',
             'app/Http/Requests/Expense/Payment.php',
@@ -996,6 +925,8 @@ class Version200 extends Listener
             'config/menus.php',
             'config/modules.php',
             'docker-compose.yml',
+            'database/seeds/Roles.php',
+            'database/seeds/CompanySeeder.php',
             'Dockerfile',
             'modules/PaypalStandard/Http/Controllers/PaypalStandard.php',
             'modules/PaypalStandard/Http/routes.php',
@@ -1033,7 +964,9 @@ class Version200 extends Listener
             'resources/assets/sass/app.scss',
             'resources/views/purchases/bills/bill.blade.php',
             'resources/views/sales/invoices/invoice.blade.php',
+            'resources/views/layouts/bill.blade.php',
             'resources/views/layouts/customer.blade.php',
+            'resources/views/layouts/invoice.blade.php',
             'resources/views/layouts/link.blade.php',
             'resources/views/modules/token/create.blade.php',
             'resources/views/partials/link/content.blade.php',
@@ -1070,8 +1003,10 @@ class Version200 extends Listener
             'app/Jobs/Income',
             'app/Listeners/Incomes',
             'app/Listeners/Updates',
+            'app/Models/Company',
             'app/Models/Expense',
             'app/Models/Income',
+            'app/Models/Item',
             'app/Notifications/Expense',
             'app/Notifications/Income',
             'app/Overrides',
@@ -1105,15 +1040,13 @@ class Version200 extends Listener
         }
     }
 
-    protected function create($model, $data)
+    public function updateEnv()
     {
-        $model->timestamps = false;
-
-        $model->fillable(array_merge($model->getFillable(), ['created_at', 'updated_at', 'deleted_at']));
-        $model->fill($data);
-
-        $model->save();
-
-        return $model;
+        Installer::updateEnv([
+            'QUEUE_CONNECTION'      =>  'sync',
+            'LOG_CHANNEL'           =>  'stack',
+            'FIREWALL_ENABLED'      =>  'true',
+            'MODEL_CACHE_ENABLED'   =>  'true',
+        ]);
     }
 }

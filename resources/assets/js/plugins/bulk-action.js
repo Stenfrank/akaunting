@@ -1,4 +1,3 @@
-import axios from "axios";
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import NProgressAxios from './nprogress-axios';
@@ -69,21 +68,22 @@ export default class BulkAction {
 
     // Selected item use action
     action() {
+        if (this.value == '*') {
+            return;
+        }
+
         var path = document.getElementsByName("bulk_action_path")[0].getAttribute('value');
 
         this.loading = true;
 
         if (this.value != 'export') {
-            axios.post(url +'/common/bulk-actions/' + path, {
+            window.axios.post(path, {
                 'handle': this.value,
                 'selected': this.selected
             })
             .then(response => {
-                //this.loading = false;
-                //this.modal = false;
                 if (response.data.redirect) {
                     window.location.reload(false);
-                } else {
                 }
             })
             .catch(error => {
@@ -96,8 +96,8 @@ export default class BulkAction {
                 //window.location.reload(false);
             });
         } else {
-            axios({
-                url: url +'/common/bulk-actions/' + path,
+            window.axios({
+                url: path,
                 method: 'POST',
                 data:{
                     'handle': this.value,
@@ -153,7 +153,7 @@ export default class BulkAction {
         var item = event.target;
         var status = (event.target.checked) ? 'enable' : 'disable';
 
-        axios.get(this.path + '/' + item_id + '/' + status)
+        window.axios.get(this.path + '/' + item_id + '/' + status)
         .then(response => {
             var type = (response.data.success) ? 'success' : 'warning';
 

@@ -41,13 +41,11 @@
             </div>
 
             @permission('update-' . $module->getAlias() . '-settings')
-            <div class="card-footer">
-                <div class="float-right">
-                    <div class="row">
-                        {{ Form::saveButtons(url()->previous()) }}
+                <div class="card-footer">
+                    <div class="row save-buttons">
+                        {{ Form::saveButtons('settings.index') }}
                     </div>
                 </div>
-            </div>
             @endpermission
 
         {!! Form::close() !!}

@@ -1,36 +1,67 @@
 @stack($name . '_input_start')
 
-<div
-    class="form-group {{ $col }} {{ isset($attributes['required']) ? 'required' : '' }}"
-    :class="[{'has-error': {{ isset($attributes['v-error']) ? $attributes['v-error'] : 'form.errors.get("' . $name . '")' }} }]">
-    {!! Form::label($name, $text, ['class' => 'form-control-label'])!!}
+    <akaunting-money :col="'{{ $col }}'"
+        @if (!empty($attributes['v-error']))
+        :form-classes="[{'has-error': {{ $attributes['v-error'] }} }]"
+        @else
+        :form-classes="[{'has-error': form.errors.has('{{ $name }}') }]"
+        @endif
 
-    <div class="input-group input-group-merge {{ $group_class }}">
-        <div class="input-group-prepend">
-            <span class="input-group-text">
-                <i class="fa fa-{{ $icon }}"></i>
-            </span>
-        </div>
-        @php
-            if ($attributes['currency']) {
-                $value = number_format($value, $attributes['currency']->precision, $attributes['currency']->decimal_mark, $attributes['currency']->thousands_separator);
-            } else {
-                $value = number_format($value, 2);
-            }
-        @endphp
-        {!! Form::text($name, $value, array_merge([
-            'class' => 'form-control',
-            'data-name' => $name,
-            'data-value' => $value,
-            'v-model.lazy' => !empty($attributes['v-model']) ? $attributes['v-model'] : (!empty($attributes['data-field']) ? 'form.' . $attributes['data-field'] . '.'. $name : 'form.' . $name),
-            'v-money' => 'money',
-        ], $attributes)) !!}
-    </div>
+        @if (isset($attributes['required']))
+        :required="{{ ($attributes['required']) ? 'true' : 'false' }}"
+        @endif
 
-    <div class="invalid-feedback d-block"
-         v-if="{{ isset($attributes['v-error']) ? $attributes['v-error'] : 'form.errors.has("' . $name . '")' }}"
-         v-html="{{ isset($attributes['v-error-message']) ? $attributes['v-error-message'] : 'form.errors.get("' . $name . '")' }}">
-    </div>
-</div>
+        @if (isset($attributes['readonly']))
+        :readonly="{{ $attributes['readonly'] }}"
+        @endif
+
+        @if (isset($attributes['disabled']))
+        :disabled="{{ $attributes['disabled'] }}"
+        @endif
+
+        @if (isset($attributes['show']))
+        v-if="{{ $attributes['show'] }}"
+        @endif
+
+        @if (isset($attributes['masked']))
+        :masked="{{ ($attributes['masked']) ? 'true' : 'false' }}"
+        @endif
+
+        :error="{{ isset($attributes['v-error']) ? $attributes['v-error'] : 'form.errors.get("' . $name . '")' }}"
+        name="{{ $name }}"
+        title="{{ $text }}"
+        :group_class="'{{ $group_class }}'"
+        icon="{{ $icon }}"
+        :currency="{{ json_encode($attributes['currency']) }}"
+        :value="{{ $value }}"
+
+        @if (!empty($attributes['dynamic-currency']))
+        :dynamic-currency="{{ $attributes['dynamic-currency'] }}"
+        @else
+        :dynamic-currency="currency"
+        @endif
+
+        @if (!empty($attributes['v-model']))
+        v-model="{{ $attributes['v-model'] }}"
+        @endif
+
+        @if (!empty($attributes['change']))
+        @change="{{ $attributes['change'] }}($event)"
+        @endif
+
+        @if (!empty($attributes['v-model']))
+        @interface="{{ $attributes['v-model'] . ' = $event' }}"
+        @elseif (!empty($attributes['data-field']))
+        @interface="{{ 'form.' . $attributes['data-field'] . '.' . $name . ' = $event' }}"
+        @else
+        @interface="form.{{ $name }} = $event"
+        @endif
+
+        @if (isset($attributes['v-error-message']))
+        :form-error="{{ $attributes['v-error-message'] }}"
+        @else
+        :form-error="form.errors.get('{{ $name }}')"
+        @endif
+    ></akaunting-money>
 
 @stack($name . '_input_end')

@@ -32,8 +32,8 @@ const app = new Vue({
         }
     },
 
-    methods:{
-        taxRateReplace(){
+    methods: {
+        onChangeTaxRate() {
             this.form.rate = this.form.rate.replace(',', '.');
         },
     }

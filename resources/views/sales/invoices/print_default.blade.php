@@ -3,35 +3,31 @@
 @section('title', trans_choice('general.invoices', 1) . ': ' . $invoice->invoice_number)
 
 @section('content')
-    <div class="row">
+    <div class="row border-bottom-1">
             <div class="col-58">
-                <div class="border-bottom-1">
-                    <div class="text company">
-                        <img class="d-logo" src="{{ $logo }}" alt="{{ setting('company.name') }}"/>
-                    </div>
+                <div class="text company">
+                    <img class="d-logo" src="{{ $logo }}" alt="{{ setting('company.name') }}"/>
                 </div>
             </div>
 
             <div class="col-42">
-                <div class="border-bottom-1">
-                    <div class="text company">
-                        <strong>{{ setting('company.name') }}</strong><br>
-                        <p>{!! nl2br(setting('company.address')) !!}</p>
+                <div class="text company">
+                    <strong>{{ setting('company.name') }}</strong><br>
+                    <p>{!! nl2br(setting('company.address')) !!}</p>
 
-                        <p>
-                            @if (setting('company.tax_number'))
-                                {{ trans('general.tax_number') }}: {{ setting('company.tax_number') }}
-                            @endif
-                        </p>
+                    <p>
+                        @if (setting('company.tax_number'))
+                            {{ trans('general.tax_number') }}: {{ setting('company.tax_number') }}
+                        @endif
+                    </p>
 
-                        <p>
-                            @if (setting('company.phone'))
-                                {{ setting('company.phone') }}
-                            @endif
-                        </p>
+                    <p>
+                        @if (setting('company.phone'))
+                            {{ setting('company.phone') }}
+                        @endif
+                    </p>
 
-                        <p>{{ setting('company.email') }}</p>
-                    </div>
+                    <p>{{ setting('company.email') }}</p>
                 </div>
             </div>
         </div>
@@ -81,7 +77,7 @@
                     <strong>
                         {{ trans('invoices.invoice_number') }}:
                     </strong>
-                    {{ $invoice->invoice_number }}<br><br>
+                    <span class="float-right">{{ $invoice->invoice_number }}</span><br><br>
                 @stack('invoice_number_input_end')
 
                 @stack('order_number_input_start')
@@ -89,7 +85,7 @@
                         <strong>
                             {{ trans('invoices.order_number') }}:
                         </strong>
-                        {{ $invoice->order_number }}<br><br>
+                        <span class="float-right">{{ $invoice->order_number }}</span><br><br>
                     @endif
                 @stack('order_number_input_end')
 
@@ -97,14 +93,14 @@
                     <strong>
                         {{ trans('invoices.invoice_date') }}:
                     </strong>
-                    @date($invoice->invoiced_at)<br><br>
+                    <span class="float-right">@date($invoice->invoiced_at)</span><br><br>
                 @stack('invoiced_at_input_end')
 
                 @stack('due_at_input_start')
                     <strong>
                         {{ trans('invoices.payment_due') }}:
                     </strong>
-                    @date($invoice->due_at)<br><br>
+                    <span class="float-right">@date($invoice->due_at)</span><br><br>
                 @stack('due_at_input_end')
             </div>
         </div>
@@ -115,11 +111,11 @@
             <div class="text">
                 <table class="lines">
                     @foreach($invoice as $item)
-                        <thead style="background-color:{{ setting('invoice.color') }};">
+                        <thead style="background-color:{{ setting('invoice.color') }} !important; -webkit-print-color-adjust: exact;">
                     @endforeach
                         <tr>
                             @stack('name_th_start')
-                                <th class="item text-white">{{ trans_choice($text_override['items'], 2) }}</th>
+                                <th class="item text-left text-white">{{ trans_choice($text_override['items'], 2) }}</th>
                             @stack('name_th_end')
 
                             @stack('quantity_th_start')
@@ -136,27 +132,27 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($invoice->items as $item)
+                        @foreach($invoice->items as $invoice_item)
                             <tr>
                                 @stack('name_td_start')
                                     <td class="item">
-                                        {{ $item->name }}
-                                        @if ($item->desc)
-                                            <br><small>{!! $item->desc !!}</small>
+                                        {{ $invoice_item->name }}
+                                        @if (!empty($invoice_item->item->description))
+                                            <br><small>{!! \Illuminate\Support\Str::limit($invoice_item->item->description, 500) !!}</small>
                                         @endif
                                     </td>
                                 @stack('name_td_end')
 
                                 @stack('quantity_td_start')
-                                    <td class="quantity">{{ $item->quantity }}</td>
+                                    <td class="quantity">{{ $invoice_item->quantity }}</td>
                                 @stack('quantity_td_end')
 
                                 @stack('price_td_start')
-                                    <td class="price">@money($item->price, $invoice->currency_code, true)</td>
+                                    <td class="price">@money($invoice_item->price, $invoice->currency_code, true)</td>
                                 @stack('price_td_end')
 
                                 @stack('total_td_start')
-                                    <td class="total">@money($item->total, $invoice->currency_code, true)</td>
+                                    <td class="total">@money($invoice_item->total, $invoice->currency_code, true)</td>
                                 @stack('total_td_end')
                             </tr>
                         @endforeach
@@ -171,39 +167,35 @@
             <div class="text company">
                 @stack('notes_input_start')
                     @if ($invoice->notes)
+                        <br>
                         <strong>{{ trans_choice('general.notes', 2) }}</strong><br><br>
-                        <div class="border-1 py-1 border-radius-default pl-2 d-note">
-                            {{ $invoice->notes }}
-                        </div>
+                        {{ $invoice->notes }}
                     @endif
                 @stack('notes_input_end')
             </div>
         </div>
 
-        <div class="col-42 text-right">
-            <div class="text company pr-2">
+        <div class="col-42 float-right text-right">
+            <div class="text company">
                 @foreach ($invoice->totals as $total)
                     @if ($total->code != 'total')
                         @stack($total->code . '_td_start')
-                            <div class="border-top-1">
-                                <br>
-                                <strong>{{ trans($total->title) }}:</strong>
-                                <strong>@money($total->amount, $invoice->currency_code, true)</strong><br><br>
+                            <div class="border-top-1 py-2">
+                                <strong class="float-left">{{ trans($total->title) }}:</strong>
+                                <span>@money($total->amount, $invoice->currency_code, true)</span><br>
                             </div>
                         @stack($total->code . '_td_end')
                     @else
                         @if ($invoice->paid)
-                            <div class="border-top-1">
-                                <br>
-                                <strong>{{ trans('invoices.paid') }}:</strong>
-                                <strong>- @money($invoice->paid, $invoice->currency_code, true)</strong><br><br>
+                            <div class="border-top-1 py-2">
+                                <strong class="float-left">{{ trans('invoices.paid') }}:</strong>
+                                <span>- @money($invoice->paid, $invoice->currency_code, true)</span><br>
                             </div>
                         @endif
                         @stack('grand_total_td_start')
-                            <div class="border-top-1">
-                                <br>
-                                <strong>{{ trans($total->name) }}:</strong>
-                                <strong>@money($total->amount - $invoice->paid, $invoice->currency_code, true)</strong>
+                            <div class="border-top-1 py-2">
+                                <strong class="float-left">{{ trans($total->name) }}:</strong>
+                                <span>@money($total->amount - $invoice->paid, $invoice->currency_code, true)</span>
                             </div>
                         @stack('grand_total_td_end')
                     @endif

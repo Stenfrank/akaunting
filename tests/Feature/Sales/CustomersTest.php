@@ -76,12 +76,12 @@ class CustomersTest extends FeatureTestCase
 
 		$customer = $this->dispatch(new CreateContact($request));
 
-        $request['name'] = $this->faker->name;
+        $request['email'] = $this->faker->safeEmail;
 
 		$this->loginAs()
 			->patch(route('customers.update', $customer->id), $request)
 			->assertStatus(200)
-			->assertSee($request['name']);
+			->assertSee($request['email']);
 
 		$this->assertFlashLevel('success');
 	}
@@ -114,7 +114,7 @@ class CustomersTest extends FeatureTestCase
 		$password = $this->faker->password;
 
 		return $this->getRequest() + [
-			'create_user' => 1,
+			'create_user' => 'true',
 			'locale' => 'en-GB',
 			'password' => $password,
 			'password_confirmation' => $password,

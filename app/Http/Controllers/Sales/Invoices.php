@@ -20,7 +20,6 @@ use App\Models\Setting\Category;
 use App\Models\Setting\Currency;
 use App\Models\Setting\Tax;
 use App\Notifications\Sale\Invoice as Notification;
-use App\Traits\Contacts;
 use App\Traits\Currencies;
 use App\Traits\DateTime;
 use App\Traits\Sales;
@@ -30,7 +29,7 @@ use Illuminate\Support\Facades\URL;
 
 class Invoices extends Controller
 {
-    use Contacts, Currencies, DateTime, Sales;
+    use Currencies, DateTime, Sales;
 
     /**
      * Display a listing of the resource.
@@ -41,7 +40,7 @@ class Invoices extends Controller
     {
         $invoices = Invoice::with(['contact', 'items', 'histories', 'transactions'])->collect(['invoice_number'=> 'desc']);
 
-        $customers = Contact::type($this->getCustomerTypes())->enabled()->orderBy('name')->pluck('name', 'id');
+        $customers = Contact::customer()->enabled()->orderBy('name')->pluck('name', 'id');
 
         $categories = Category::type('income')->enabled()->orderBy('name')->pluck('name', 'id');
 
@@ -67,7 +66,7 @@ class Invoices extends Controller
 
         $account_currency_code = Account::where('id', setting('default.account'))->pluck('currency_code')->first();
 
-        $customers = Contact::type($this->getCustomerTypes())->enabled()->orderBy('name')->pluck('name', 'id');
+        $customers = Contact::customer()->enabled()->orderBy('name')->pluck('name', 'id');
 
         $categories = Category::type('income')->enabled()->orderBy('name')->pluck('name', 'id');
 
@@ -76,6 +75,19 @@ class Invoices extends Controller
         $signed_url = URL::signedRoute('signed.invoices.show', [$invoice->id, 'company_id' => session('company_id')]);
 
         $date_format = $this->getCompanyDateFormat();
+
+        // Get Invoice Totals
+        foreach ($invoice->totals as $invoice_total) {
+            $invoice->{$invoice_total->code} = $invoice_total->amount;
+        }
+
+        $total = money($invoice->total, $currency->code, true)->format();
+
+        $invoice->grand_total = money($total, $currency->code)->getAmount();
+
+        if (!empty($invoice->paid)) {
+            $invoice->grand_total = round($invoice->total - $invoice->paid, $currency->precision);
+        }
 
         return view('sales.invoices.show', compact('invoice', 'accounts', 'currencies', 'currency', 'account_currency_code', 'customers', 'categories', 'payment_methods', 'signed_url', 'date_format'));
     }
@@ -87,15 +99,15 @@ class Invoices extends Controller
      */
     public function create()
     {
-        $customers = Contact::type($this->getCustomerTypes())->enabled()->orderBy('name')->pluck('name', 'id');
+        $customers = Contact::customer()->enabled()->orderBy('name')->pluck('name', 'id');
 
         $currencies = Currency::enabled()->orderBy('name')->pluck('name', 'code')->toArray();
 
         $currency = Currency::where('code', setting('default.currency'))->first();
 
-        $items = Item::enabled()->orderBy('name')->pluck('name', 'id');
+        $items = Item::enabled()->orderBy('name')->get();
 
-        $taxes = Tax::enabled()->orderBy('name')->get()->pluck('title', 'id');
+        $taxes = Tax::enabled()->orderBy('name')->get();
 
         $categories = Category::type('income')->enabled()->orderBy('name')->pluck('name', 'id');
 
@@ -159,11 +171,11 @@ class Invoices extends Controller
      */
     public function import(ImportRequest $request)
     {
-        $success = true;
+        try {
+            \Excel::import(new Import(), $request->file('import'));
+        } catch (\Maatwebsite\Excel\Exceptions\SheetNotFoundException $e) {
+            flash($e->getMessage())->error()->important();
 
-        \Excel::import(new Import(), $request->file('import'));
-
-        if (!$success) {
             return redirect()->route('import.create', ['sales', 'invoices']);
         }
 
@@ -171,7 +183,7 @@ class Invoices extends Controller
 
         flash($message)->success();
 
-        return redirect('sales/invoices');
+        return redirect()->route('invoices.index');
     }
 
     /**
@@ -183,15 +195,15 @@ class Invoices extends Controller
      */
     public function edit(Invoice $invoice)
     {
-        $customers = Contact::type($this->getCustomerTypes())->enabled()->orderBy('name')->pluck('name', 'id');
+        $customers = Contact::customer()->enabled()->orderBy('name')->pluck('name', 'id');
 
         $currencies = Currency::enabled()->orderBy('name')->pluck('name', 'code')->toArray();
 
         $currency = Currency::where('code', $invoice->currency_code)->first();
 
-        $items = Item::enabled()->orderBy('name')->pluck('name', 'id');
+        $items = Item::enabled()->orderBy('name')->get();
 
-        $taxes = Tax::enabled()->orderBy('name')->get()->pluck('title', 'id');
+        $taxes = Tax::enabled()->orderBy('name')->get();
 
         $categories = Category::type('income')->enabled()->orderBy('name')->pluck('name', 'id');
 
@@ -211,7 +223,7 @@ class Invoices extends Controller
         $response = $this->ajaxDispatch(new UpdateInvoice($invoice, $request));
 
         if ($response['success']) {
-            $response['redirect'] = route('invoices.index');
+            $response['redirect'] = route('invoices.show', $response['data']->id);
 
             $message = trans('messages.success.updated', ['type' => trans_choice('general.invoices', 1)]);
 
@@ -260,7 +272,7 @@ class Invoices extends Controller
      */
     public function export()
     {
-        return \Excel::download(new Export(), trans_choice('general.invoices', 2) . '.xlsx');
+        return \Excel::download(new Export(), \Str::filename(trans_choice('general.invoices', 2)) . '.xlsx');
     }
 
     /**
@@ -275,6 +287,24 @@ class Invoices extends Controller
         event(new \App\Events\Sale\InvoiceSent($invoice));
 
         $message = trans('invoices.messages.marked_sent');
+
+        flash($message)->success();
+
+        return redirect()->back();
+    }
+
+    /**
+     * Mark the invoice as cancelled.
+     *
+     * @param  Invoice $invoice
+     *
+     * @return Response
+     */
+    public function markCancelled(Invoice $invoice)
+    {
+        event(new \App\Events\Sale\InvoiceCancelled($invoice));
+
+        $message = trans('invoices.messages.marked_cancelled');
 
         flash($message)->success();
 
@@ -434,7 +464,7 @@ class Invoices extends Controller
             if ($invoice->currency_code != $item->currency_code) {
                 $item->default_currency_code = $invoice->currency_code;
 
-                $amount = $item->getAmountConvertedFromCustomDefault();
+                $amount = $item->getAmountConvertedFromDefault();
             }
 
             $paid += $amount;

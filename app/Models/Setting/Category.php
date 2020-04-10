@@ -32,7 +32,7 @@ class Category extends Model
         return $this->transactions()->where('type', 'expense');
     }
 
-    public function income_transacions()
+    public function income_transactions()
     {
         return $this->transactions()->where('type', 'income');
     }
@@ -65,7 +65,7 @@ class Category extends Model
             return $query;
         }
 
-        return $query->whereIn('type', (array) $types);
+        return $query->whereIn($this->table . '.type', (array) $types);
     }
 
     public function scopeName($query, $name)

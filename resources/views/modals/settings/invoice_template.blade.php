@@ -1,4 +1,4 @@
-<div class="modal-body">
+<div class="modal-body pb-0">
     {!! Form::open([
             'route' => 'modals.invoice-templates.update',
             'method' => 'PATCH',
@@ -58,7 +58,6 @@
                 </div>
             @stack('color_input_end')
         </div>
-
 
         {!! Form::hidden('_template', $setting['template']) !!}
         {!! Form::hidden('_prefix', 'invoice') !!}

@@ -11,10 +11,11 @@
                         <th class="col-xs-4 col-md-4 text-right">{{ trans('general.amount') }}</th>
                     </tr>
                 </thead>
+
                 <tbody>
                     @if ($transactions->count())
                         @foreach($transactions as $item)
-                            <tr class="row border-top-1">
+                            <tr class="row border-top-1 tr-py">
                                 <td class="col-xs-4 col-md-4 text-left">@date($item->paid_at)</td>
                                 <td class="col-xs-4 col-md-4 text-left">{{ $item->category->name }}</td>
                                 <td class="col-xs-4 col-md-4 text-right">@money($item->amount, $item->currency_code, true)</td>
@@ -23,7 +24,7 @@
                     @else
                         <tr class="border-top-1">
                             <td colspan="3">
-                                <div class="text-muted" id="datatable-basic_info" role="status" aria-live="polite">
+                                <div class="text-muted nr-py" id="datatable-basic_info" role="status" aria-live="polite">
                                     {{ trans('general.no_records') }}
                                 </div>
                             </td>

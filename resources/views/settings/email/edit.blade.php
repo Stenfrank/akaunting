@@ -76,7 +76,7 @@
 
                                 {{ Form::textGroup('smtp_password', trans('settings.email.smtp.password'), 'paper-plane', ['type' => 'password', ':disabled' => 'email.smtpPassword']) }}
 
-                                {{ Form::selectGroup('smtp_encryption', trans('settings.email.smtp.encryption'), 'paper-plane', ['' => trans('settings.email.smtp.none'), 'ssl' => 'SSL', 'tls' => 'TLS'], !empty($setting['smtp_encryption']) ? $setting['smtp_encryption'] : null ,['disabled' => 'email.smtpEncryption']) }}
+                                {{ Form::selectGroup('smtp_encryption', trans('settings.email.smtp.encryption'), 'paper-plane', ['' => trans('settings.email.smtp.none'), 'ssl' => 'SSL', 'tls' => 'TLS'], !empty($setting['smtp_encryption']) ? $setting['smtp_encryption'] : null , ['disabled' => 'email.smtpEncryption']) }}
                              </div>
                         </div>
                     </div>
@@ -89,8 +89,8 @@
         <div class="row ml-0 mr-0">
             <div class="card col-md-12">
                 <div class="card-body mr--3">
-                    <div class="row float-right">
-                        {{ Form::saveButtons(URL::previous()) }}
+                    <div class="row save-buttons">
+                        {{ Form::saveButtons('settings.index') }}
                     </div>
                 </div>
             </div>
@@ -103,5 +103,8 @@
 @endsection
 
 @push('scripts_start')
+    <script src="{{ asset('public/0.js?v=' . version('short')) }}"></script>
+    <script src="{{ asset('public/38.js?v=' . version('short')) }}"></script>
+
     <script src="{{ asset('public/js/settings/settings.js?v=' . version('short')) }}"></script>
 @endpush

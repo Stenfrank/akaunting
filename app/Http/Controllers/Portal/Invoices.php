@@ -3,11 +3,8 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Abstracts\Http\Controller;
-use App\Models\Banking\Account;
-use App\Models\Common\Contact;
 use App\Models\Sale\Invoice;
 use App\Models\Setting\Category;
-use App\Models\Setting\Currency;
 use App\Traits\Currencies;
 use App\Traits\DateTime;
 use App\Traits\Sales;
@@ -26,7 +23,7 @@ class Invoices extends Controller
      */
     public function index()
     {
-        $invoices = Invoice::with(['contact', 'status', 'items', 'payments', 'histories'])
+        $invoices = Invoice::with(['contact', 'items', 'payments', 'histories'])
             ->accrued()->where('contact_id', user()->contact->id)
             ->collect(['invoice_number'=> 'desc']);
 
@@ -46,21 +43,11 @@ class Invoices extends Controller
      */
     public function show(Invoice $invoice)
     {
-        $accounts = Account::enabled()->orderBy('name')->pluck('name', 'id');
-
-        $currencies = Currency::enabled()->orderBy('name')->pluck('name', 'code')->toArray();
-
-        $account_currency_code = Account::where('id', setting('default.account'))->pluck('currency_code')->first();
-
-        $customers = Contact::type('customer')->enabled()->orderBy('name')->pluck('name', 'id');
-
-        $categories = Category::type('income')->enabled()->orderBy('name')->pluck('name', 'id');
-
         $payment_methods = Modules::getPaymentMethods();
 
         event(new \App\Events\Sale\InvoiceViewed($invoice));
 
-        return view('portal.invoices.show', compact('invoice', 'accounts', 'currencies', 'account_currency_code', 'customers', 'categories', 'payment_methods'));
+        return view('portal.invoices.show', compact('invoice', 'payment_methods'));
     }
 
     /**
@@ -113,7 +100,7 @@ class Invoices extends Controller
             if ($invoice->currency_code != $item->currency_code) {
                 $item->default_currency_code = $invoice->currency_code;
 
-                $amount = $item->getAmountConvertedFromCustomDefault();
+                $amount = $item->getAmountConvertedFromDefault();
             }
 
             $paid += $amount;
@@ -121,7 +108,7 @@ class Invoices extends Controller
 
         $invoice->paid = $paid;
 
-        $invoice->template_path = 'sales.invoices.print';
+        $invoice->template_path = 'sales.invoices.print_' . setting('invoice.template' ,'default');
 
         event(new \App\Events\Sale\InvoicePrinting($invoice));
 
@@ -142,23 +129,13 @@ class Invoices extends Controller
             if ($invoice->currency_code != $item->currency_code) {
                 $item->default_currency_code = $invoice->currency_code;
 
-                $amount = $item->getAmountConvertedFromCustomDefault();
+                $amount = $item->getAmountConvertedFromDefault();
             }
 
             $paid += $amount;
         }
 
         $invoice->paid = $paid;
-
-        $accounts = Account::enabled()->pluck('name', 'id');
-
-        $currencies = Currency::enabled()->pluck('name', 'code')->toArray();
-
-        $account_currency_code = Account::where('id', setting('default.account'))->pluck('currency_code')->first();
-
-        $customers = Contact::type('customer')->enabled()->pluck('name', 'id');
-
-        $categories = Category::type('income')->enabled()->pluck('name', 'id');
 
         $payment_methods = Modules::getPaymentMethods();
 
@@ -177,6 +154,6 @@ class Invoices extends Controller
 
         event(new \App\Events\Sale\InvoiceViewed($invoice));
 
-        return view('portal.invoices.signed', compact('invoice', 'accounts', 'currencies', 'account_currency_code', 'customers', 'categories', 'payment_methods', 'payment_actions', 'print_action', 'pdf_action'));
+        return view('portal.invoices.signed', compact('invoice', 'payment_methods', 'payment_actions', 'print_action', 'pdf_action'));
     }
 }

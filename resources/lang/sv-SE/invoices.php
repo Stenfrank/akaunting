@@ -29,6 +29,7 @@ return [
     'add_payment'           => 'Lägg till betalning',
     'mark_paid'             => 'Markera som betald',
     'mark_sent'             => 'Markera som skickad',
+    'mark_viewed'           => 'Markera som visad',
     'download_pdf'          => 'Ladda ner PDF',
     'send_mail'             => 'Skicka E-post',
     'all_invoices'          => 'Logga in för att visa alla fakturor',
@@ -37,13 +38,15 @@ return [
     'get_paid'              => 'Få betalt',
     'accept_payments'       => 'Acceptera onlinebetalningar',
 
-    'status' => [
+    'statuses' => [
         'draft'             => 'Utkast',
         'sent'              => 'Skickat',
         'viewed'            => 'Visad',
         'approved'          => 'Godkänd',
         'partial'           => 'Delvis',
         'paid'              => 'Betald',
+        'overdue'           => 'Förfallen',
+        'unpaid'            => 'Obetald',
     ],
 
     'messages' => [

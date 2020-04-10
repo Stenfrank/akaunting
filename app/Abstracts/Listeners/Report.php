@@ -2,32 +2,37 @@
 
 namespace App\Abstracts\Listeners;
 
-use App\Events\Common\ReportFilterApplying;
-use App\Events\Common\ReportFilterShowing;
-use App\Events\Common\ReportGroupApplying;
-use App\Events\Common\ReportGroupShowing;
 use App\Models\Banking\Account;
 use App\Models\Common\Contact;
 use App\Models\Setting\Category;
 use App\Traits\Contacts;
+use App\Traits\DateTime;
 use Date;
 
 abstract class Report
 {
-    use Contacts;
+    use Contacts, DateTime;
 
-    protected $class = '';
+    protected $classes = [];
 
     protected $events = [
-        'App\Events\Common\ReportFilterShowing',
-        'App\Events\Common\ReportFilterApplying',
-        'App\Events\Common\ReportGroupShowing',
-        'App\Events\Common\ReportGroupApplying',
+        'App\Events\Report\FilterShowing',
+        'App\Events\Report\FilterApplying',
+        'App\Events\Report\GroupShowing',
+        'App\Events\Report\GroupApplying',
+        'App\Events\Report\RowsShowing',
     ];
 
-    public function checkClass($event)
+    public function skipThisClass($event)
     {
-        return (get_class($event->class) == $this->class);
+        return (empty($event->class) || !in_array(get_class($event->class), $this->classes));
+    }
+
+    public function skipRowsShowing($event, $group)
+    {
+        return $this->skipThisClass($event)
+                || empty($event->class->model->settings->group)
+                || ($event->class->model->settings->group != $group);
     }
 
     public function getYears()
@@ -72,7 +77,7 @@ abstract class Report
 
     public function getCategories($types)
     {
-        return Category::type($types)->enabled()->orderBy('name')->pluck('name', 'id')->toArray();
+        return Category::type($types)->orderBy('name')->pluck('name', 'id')->toArray();
     }
 
     public function getCustomers()
@@ -87,7 +92,7 @@ abstract class Report
 
     public function getContacts($types)
     {
-        return Contact::type($types)->enabled()->orderBy('name')->pluck('name', 'id')->toArray();
+        return Contact::type($types)->orderBy('name')->pluck('name', 'id')->toArray();
     }
 
     public function applyDateFilter($event)
@@ -116,6 +121,8 @@ abstract class Report
             }
 
             $event->model->account_id = $transaction->account_id;
+
+            break;
         }
     }
 
@@ -137,68 +144,40 @@ abstract class Report
         }
     }
 
-    /**
-     * Handle filter showing event.
-     *
-     * @param  $event
-     * @return void
-     */
-    public function handleReportFilterShowing(ReportFilterShowing $event)
+    public function setRowNamesAndValues($event, $rows)
     {
-        if (!$this->checkClass($event)) {
-            return;
+        foreach ($event->class->dates as $date) {
+            foreach ($event->class->tables as $table) {
+                foreach ($rows as $id => $name) {
+                    $event->class->row_names[$table][$id] = $name;
+                    $event->class->row_values[$table][$id][$date] = 0;
+                }
+            }
         }
-
-        $event->class->filters['years'] = $this->getYears();
     }
 
-    /**
-     * Handle filter applying event.
-     *
-     * @param  $event
-     * @return void
-     */
-    public function handleReportFilterApplying(ReportFilterApplying $event)
+    public function getFormattedDate($event, $date)
     {
-        if (!$this->checkClass($event)) {
-            return;
+        if (empty($event->class->model->settings->period)) {
+            return $date->copy()->format('Y-m-d');
         }
 
-        // Apply date
-        $this->applyDateFilter($event);
+        switch ($event->class->model->settings->period) {
+            case 'yearly':
+                $d = $date->copy()->format($this->getYearlyDateFormat());
+                break;
+            case 'quarterly':
+                $start = $date->copy()->startOfQuarter()->format($this->getQuarterlyDateFormat());
+                $end = $date->copy()->endOfQuarter()->format($this->getQuarterlyDateFormat());
 
-        // Apply search
-        $this->applySearchStringFilter($event);
-    }
-
-    /**
-     * Handle group showing event.
-     *
-     * @param  $event
-     * @return void
-     */
-    public function handleReportGroupShowing(ReportGroupShowing $event)
-    {
-        if (!$this->checkClass($event)) {
-            return;
+                $d = $start . '-' . $end;
+                break;
+            default:
+                $d = $date->copy()->format($this->getMonthlyDateFormat());
+                break;
         }
 
-        $event->class->groups['category'] = trans_choice('general.categories', 1);
-    }
-
-    /**
-     * Handle group applying event.
-     *
-     * @param  $event
-     * @return void
-     */
-    public function handleReportGroupApplying(ReportGroupApplying $event)
-    {
-        if (!$this->checkClass($event)) {
-            return;
-        }
-
-        $this->applyAccountGroup($event);
+        return $d;
     }
 
     /**

@@ -12,14 +12,22 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6
 }
 /*--Header Set Color Finish--*/
 
+/*--------Selection Reference--------*/
+::selection
+{
+    background-color: #3c3f72;
+    color: #ffffff;
+}
+/*--------Selection Reference Finish--------*/
+
 /*--Anchor Color--*/
 a
 {
-    color: #55588b;
+    color: #6da252;
 }
 a:hover
 {
-    color: #55588b;
+    color: #3d7224;
 }
 /*--Anchor Color Finish--*/
 
@@ -273,7 +281,8 @@ a.text-yellow:focus
 /*--Secondary Color Finish--*/
 
 /*--Info Color--*/
-.alert-info {
+.alert-info
+{
     color: #ffffff;
     border-color: #328aef;
     background-color: #328aef;
@@ -471,6 +480,32 @@ a.text-yellow:focus
     background-color: #bf8003;
 }
 /*--Warning Color Finish--*/
+/*--Dark Color--*/
+.badge-dark
+{
+    color: #fff;
+    background-color: #191919;
+}
+.badge-dark[href]:hover,
+.badge-dark[href]:focus
+{
+    color: #fff;
+    background-color: #191919;
+}
+/*--Dark Color Finish--*/
+/*--Darker Color--*/
+.badge-darker
+{
+    color: #fff;
+    background-color: #000000;
+}
+.badge-darker[href]:hover,
+.badge-darker[href]:focus
+{
+    color: #fff;
+    background-color: #000000;
+}
+/*--Darker Color Finish--*/
 /*--------Badge Colors Finish--------*/
 
 /*--------Background Colors--------*/
@@ -655,29 +690,33 @@ button.bg-darker:focus
 /*--Darker Color Finish--*/
 
 /*--Green Color--*/
-.bg-green {
+.bg-green
+{
   background-color: #6da252 !important;
 }
 
 a.bg-green:hover,
 a.bg-green:focus,
 button.bg-green:hover,
-button.bg-green:focus {
+button.bg-green:focus
+{
   background-color: #3d7224 !important;
 }
 /*--Green Color Finish--*/
 
 /*--Yellow Color--*/
-.bg-yellow {
+.bg-yellow
+{
     background-color: #efef32 !important;
-  }
+}
 
-  a.bg-yellow:hover,
-  a.bg-yellow:focus,
-  button.bg-yellow:hover,
-  button.bg-yellow:focus {
+a.bg-yellow:hover,
+a.bg-yellow:focus,
+button.bg-yellow:hover,
+button.bg-yellow:focus
+{
     background-color: #bcbf03 !important;
-  }
+}
 /*--Yellow Color Finish--*/
 /*--------Background Colors Finish--------*/
 
@@ -1840,7 +1879,6 @@ button.bg-green:focus {
 }
 /*--Danger Color Finish--*/
 
-
 /*--Warning Color--*/
 .bg-gradient-warning
 {
@@ -1852,32 +1890,53 @@ button.bg-green:focus {
 
 /*--------Transaction Status Colors--------*/
 /*--Draft Color--*/
-.status-info
+.status-primary
 {
-    background-image: linear-gradient(to right, #ffffff , #328aef);
+    background-image: linear-gradient(to right, #ffffff, #55588b);
 }
 /*--Draft Color Finish--*/
+
+/*--Partial Color--*/
+.status-info
+{
+    background-image: linear-gradient(to right, #ffffff, #328aef);
+}
+/*--Partial Color Finish--*/
 
 /*--Paid Color--*/
 .status-success
 {
-    background-image: linear-gradient(to right, #ffffff , #6da252);
+    background-image: linear-gradient(to right, #ffffff, #6da252);
 }
 /*--Paid Color Finish--*/
 
-/*--Delete Color--*/
+/*--Sent Color--*/
 .status-danger
 {
-    background-image: linear-gradient(to right, #ffffff , #ef3232);
-}
-/*--Delete Color Finish--*/
-
-/*--Sent Color--*/
-.status-warning
-{
-    background-image: linear-gradient(to right, #ffffff , #efad32);
+    background-image: linear-gradient(to right, #ffffff, #ef3232);
 }
 /*--Sent Color Finish--*/
+
+/*--Viewed Color--*/
+.status-warning
+{
+    background-image: linear-gradient(to right, #ffffff, #efad32);
+}
+/*--Viewed Color Finish--*/
+
+/*--Dark Color--*/
+.status-dark
+{
+    background-image: linear-gradient(to right, #ffffff, #191919);
+}
+/*--Dark Color Finish--*/
+
+/*--Darker Color--*/
+.status-darker
+{
+    background-image: linear-gradient(to right, #ffffff, #000000);
+}
+/*--Darker Color Finish--*/
 /*--------Transaction Status Colors Finish--------*/
 
 
@@ -1931,15 +1990,16 @@ button.bg-green:focus {
     background: unset;
 }
 
-.avatar-xs {
-    font-size: .875rem;
-    width: 30px;
-    height: 30px;
+.menu-avatar
+{
+    font-size: .875rem !important;
+    width: 30px !important;
+    height: 30px !important;
 }
 /*--Left Menu Icon Finish--*/
 
 /*--Unselected Text Color--*/
-.navbar-vertical.navbar-expand-xs .navbar-nav .nav-link
+.navbar-vertical.navbar-expand-xs, .navbar-vertical.navbar-expand-sm .navbar-nav .nav-link
 {
     color: #ffffff !important;
 }
@@ -1961,7 +2021,7 @@ button.bg-green:focus {
 /*--Selected Submenu Arrow Color Finish--*/
 
 /*--Selected Icon Color--*/
-.navbar-vertical.navbar-expand-xs .navbar-nav > .nav-item > .nav-link.active
+.navbar-vertical.navbar-expand-xs, .navbar-vertical.navbar-expand-sm .navbar-nav > .nav-item > .nav-link.active
 {
     color: #161842 !important;
 }
@@ -1975,14 +2035,14 @@ button.bg-green:focus {
 /*--Selected Text Color Finish--*/
 
 /*--Selected Submenu Main Arrow Default Color--*/
-.navbar-vertical.navbar-expand-xs .navbar-nav > .nav-item > .nav-link.active.show[aria-expanded='false']:after
+.navbar-vertical.navbar-expand-xs, .navbar-vertical.navbar-expand-sm .navbar-nav > .nav-item > .nav-link.active.show[aria-expanded='false']:after
 {
     color:  #161842 !important;
 }
 /*--Selected Submenu Main Arrow Default Color Finish--*/
 
 /*--Selected Submenu Main Arrow Selected Color--*/
-.navbar-vertical.navbar-expand-xs .navbar-nav > .nav-item > .nav-link.active.show[aria-expanded='true']:after
+.navbar-vertical.navbar-expand-xs, .navbar-vertical.navbar-expand-sm .navbar-nav > .nav-item > .nav-link.active.show[aria-expanded='true']:after
 {
     color:  #161842 !important;
 }
@@ -1992,10 +2052,10 @@ button.bg-green:focus {
 
 /*--------Form Error Color--------*/
 /*--Required Sign Color--*/
-div.required .form-control-label:not(span):after, td.required:after
+div.required > .form-control-label:not(span):after, td.required:after
 {
     content: ' *';
-    color: #e74c3c;
+    color: #ef3232;
     font-weight: bold;
 }
 /*--Required Sign Color Finish--*/
@@ -2003,17 +2063,17 @@ div.required .form-control-label:not(span):after, td.required:after
 /*--Input Error Border Color--*/
 .form-group.has-error .form-control, .form-group.has-error .input-group-merge .input-group-prepend .input-group-text
 {
-    border-color: #e74c3c !important;
+    border-color: #ef3232 !important;
 }
 /*--Input Error Border Color Finish--*/
 
 /*--Error Message Color--*/
 .help-block
 {
-    color : #e74c3c !important;
+    color : #ef3232 !important;
 }
 /*--Error Message Color Finish--*/
-/*--------Form Error Color--------*/
+/*--------Form Error Color Finish--------*/
 
 
 /*--------Navbar Colors--------*/
@@ -2067,6 +2127,11 @@ div.required .form-control-label:not(span):after, td.required:after
     box-shadow: rgba(248, 248, 255) 0 0 0 1px, rgba(248, 248, 255) 0 4px 16px;
 }
 
+.btn-icon-clipboard:focus
+{
+    outline: none;
+}
+
 /*--Settings Board Icon Color--*/
 .btn-icon-clipboard i
 {
@@ -2099,14 +2164,6 @@ div.required .form-control-label:not(span):after, td.required:after
     border-color: #55588b !important;
 }
 /*--------Checkbox Color Finish--------*/
-
-
-/*--------Bulk Action Card Header Color--------*/
-.bg-bulkaction
-{
-    background-image: linear-gradient(to right, #ffffff, #e5e5e5);
-}
-/*--------Bulk Action Card Header Color Finish--------*/
 
 
 /*--------Form Input Colors--------*/
@@ -2203,22 +2260,6 @@ div.required .form-control-label:not(span):after, td.required:after
 /*--------Item Index Image Color Finish--------*/
 
 
-/*--------Wizard Steps Color--------*/
-.wizard-steps-color
-{
-    color: #adb5bd !important;
-    cursor:default;
-}
-
-.wizard-steps-color-active:hover
-{
-    color: #ffffff !important;
-    background-color: #3c3f72 !important;
-    border-color: #3c3f72 !important;
-}
-/*--------Wizard Steps Color Finish--------*/
-
-
 /*--------Pagination Active Color--------*/
 .page-item.active .page-link
 {
@@ -2267,7 +2308,9 @@ option:focus
 
 .flatpickr-calendar .flatpickr-day.today
 {
-  border: 1px solid #3c3f72;
+  border: 1px solid #3c3f72 !important;
+  background: #3c3f72 !important;
+  color: #ffffff !important
 }
 
 .flatpickr-calendar .flatpickr-day.today:hover
@@ -2325,7 +2368,7 @@ option:focus
 /*--------Login Card Background Color Finish--------*/
 
 
-/*--------General Progress Bar Color--------*/
+/*--General Progress Bar Color---*/
 #nprogress .bar
 {
     background: #3f3c72 !important;
@@ -2342,10 +2385,10 @@ option:focus
 {
     box-shadow: 0 0 10px #3f3c72, 0 0 5px #3f3c72 !important;
 }
-/*--------General Progress Bar Color Finish--------*/
+/*--General Progress Bar Color Finish---*/
 
 
-/*--------List Group Item Active-------*/
+/*--List Group Item Active---*/
 .list-group-item.active
 {
     z-index: 2;
@@ -2353,25 +2396,7 @@ option:focus
     background-color: #3c3f72 !important;
     border-color: #3c3f72 !important;
 }
-/*--------List Group Item Active Finish-------*/
-
-
-/*--Create Category Button Color--*/
-.category-add
-{
-    height: 3.3em !important;
-    margin-left: -0.2em;
-    color: #adb5bd !important;
-    border-color: #dee2e6 !important;
-    background-color: #ffffff !important;
-    box-shadow: none;
-}
-
-.category-add:hover
-{
-    box-shadow: none;
-}
-/*--Create Category Button Color Finish--*/
+/*--List Group Item Active Finish---*/
 
 
 /*--Wizard Delete Button Text--*/
@@ -2382,3 +2407,4 @@ option:focus
     border: 0;
 }
 /*--Wizard Delete Button Text Finish--*/
+

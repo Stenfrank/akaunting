@@ -19,7 +19,15 @@ class Form extends Provider
             'name', 'text', 'icon', 'attributes' => ['required' => 'required'], 'value' => null, 'col' => 'col-md-6', 'group_class' => null
         ]);
 
+        Facade::component('dateTimeGroup', 'partials.form.date_time_group', [
+            'name', 'text', 'icon', 'attributes' => ['required' => 'required'], 'value' => null, 'col' => 'col-md-6', 'group_class' => null
+        ]);
+
         Facade::component('dateGroup', 'partials.form.date_group', [
+            'name', 'text', 'icon', 'attributes' => ['required' => 'required'], 'value' => null, 'col' => 'col-md-6', 'group_class' => null
+        ]);
+
+        Facade::component('timeGroup', 'partials.form.time_group', [
             'name', 'text', 'icon', 'attributes' => ['required' => 'required'], 'value' => null, 'col' => 'col-md-6', 'group_class' => null
         ]);
 
@@ -112,7 +120,7 @@ class Form extends Provider
         ]);
 
         Facade::component('bulkActionRowGroup', 'partials.form.bulk_action_row_group', [
-            'text', 'actions', 'path'
+            'text', 'actions', 'path', 'attributes' => []
         ]);
 
         Facade::component('bulkActionAllGroup', 'partials.form.bulk_action_all_group', [
@@ -120,7 +128,7 @@ class Form extends Provider
         ]);
 
         Facade::component('bulkActionGroup', 'partials.form.bulk_action_group', [
-            'id', 'name'
+            'id', 'name', 'attributes' => []
         ]);
 
         Facade::component('enabledGroup', 'partials.form.enabled_group', [

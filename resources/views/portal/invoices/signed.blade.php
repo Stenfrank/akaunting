@@ -3,7 +3,7 @@
 @section('title', trans_choice('general.invoices', 1) . ': ' . $invoice->invoice_number)
 
 @section('new_button')
-    <span><a href="{{ route('portal.dashboard') }}" class="btn btn-success btn-sm"><span class="fa fa-user"></span> &nbsp;{{ trans('invoices.all_invoices') }}</a></span>
+    <a href="{{ route('portal.dashboard') }}" class="btn btn-success btn-sm header-button-top"><span class="fa fa-user"></span> &nbsp;{{ trans('invoices.all_invoices') }}</a>
 @endsection
 
 @section('content')
@@ -20,13 +20,7 @@
                             <tbody>
                                 <tr>
                                     <th>
-                                        @if (setting('company.logo'))
-                                            <img src="{{ Storage::url(setting('company.logo')) }}" />
-                                        @else
-                                            <span class="avatar avatar-size rounded-circle bg-primary">
-                                                <i class="fas fa-building"></i>
-                                            </span>
-                                        @endif
+                                        <img src="{{ $logo }}" alt="{{ setting('company.name') }}"/>
                                     </th>
                                 </tr>
                             </tbody>
@@ -45,7 +39,7 @@
                                 </tr>
                                 <tr>
                                     <th>
-                                        {{ setting('company.address') }}
+                                        {!! nl2br(setting('company.address')) !!}
                                     </th>
                                 </tr>
                                 <tr>
@@ -86,7 +80,7 @@
                                 </tr>
                                 <tr>
                                     <th>
-                                        {{ $invoice->contact_address }}
+                                        {!! nl2br($invoice->contact_address) !!}
                                     </th>
                                 </tr>
                                 <tr>
@@ -144,18 +138,23 @@
                 <div class="col-md-12 table-responsive">
                     <table class="table table-striped">
                         <tbody>
-                            <tr>
-                                <th class="pl-5">{{ trans_choice('general.items', 1) }}</th>
-                                <th class="text-center">{{ trans('invoices.quantity') }}</th>
-                                <th class="text-center pl-7">{{ trans('invoices.price') }}</th>
-                                <th class="text-right pr-5">{{ trans('invoices.total') }}</th>
+                            <tr class="row">
+                                <th class="col-xs-4 col-sm-5 pl-5">{{ trans_choice('general.items', 1) }}</th>
+                                <th class="col-xs-4 col-sm-1 text-center">{{ trans('invoices.quantity') }}</th>
+                                <th class="col-sm-3 text-right d-none d-sm-block">{{ trans('invoices.price') }}</th>
+                                <th class="col-xs-4 col-sm-3 text-right pr-5">{{ trans('invoices.total') }}</th>
                             </tr>
-                            @foreach($invoice->items as $item)
-                                <tr>
-                                    <td class="pl-5">{{ $item->name }}</td>
-                                    <td class="text-center">{{ $item->quantity }}</td>
-                                    <td class="text-center pl-7">@money($item->price, $invoice->currency_code, true)</td>
-                                    <td class="text-right pr-5">@money($item->total, $invoice->currency_code, true)</td>
+                            @foreach($invoice->items as $invoice_item)
+                                <tr class="row">
+                                    <td class="col-xs-4 col-sm-5 pl-5">
+                                        {{ $invoice_item->name }}
+                                        @if (!empty($invoice_item->item->description))
+                                            <br><small class="text-pre-nowrap">{!! \Illuminate\Support\Str::limit($invoice_item->item->description, 500) !!}<small>
+                                        @endif
+                                    </td>
+                                    <td class="col-xs-4 col-sm-1 text-center">{{ $invoice_item->quantity }}</td>
+                                    <td class="col-sm-3 text-right d-none d-sm-block">@money($invoice_item->price, $invoice->currency_code, true)</td>
+                                    <td class="col-xs-4 col-sm-3 text-right pr-5">@money($invoice_item->total, $invoice->currency_code, true)</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -172,7 +171,7 @@
                                     <th>
                                         @if ($invoice->notes)
                                             <p class="form-control-label">{{ trans_choice('general.notes', 2) }}</p>
-                                            <p class="form-control text-muted long-texts">{{ $invoice->notes }}</p>
+                                            <p class="text-muted long-texts">{{ $invoice->notes }}</p>
                                         @endif
                                     </th>
                                 </tr>
@@ -214,27 +213,25 @@
         <div class="card-footer">
             <div class="row">
                 <div class="col-md-4">
-                    @if($invoice->status != 'paid')
-                        @if ($payment_methods)
-                            {!! Form::open([
-                                'id' => 'invoice-payment',
-                                'role' => 'form',
-                                'autocomplete' => "off",
-                                'novalidate' => 'true',
-                                'class' => 'mb-0',
-                            ]) !!}
-                                {{ Form::selectGroup('payment_method', '', 'fas fa-wallet', $payment_methods, '', ['change' => 'onChangePaymentMethodSigned', 'id' => 'payment-method', 'class' => 'form-control', 'placeholder' => trans('general.form.select.field', ['field' => trans_choice('general.payment_methods', 1)])], 'mb-0') }}
-                                {!! Form::hidden('invoice_id', $invoice->id, ['v-model' => 'form.invoice_id']) !!}
-                            {!! Form::close() !!}
-                        @endif
+                    @if (!empty($payment_methods) && !in_array($invoice->status, ['paid', 'cancelled']))
+                        {!! Form::open([
+                            'id' => 'invoice-payment',
+                            'role' => 'form',
+                            'autocomplete' => "off",
+                            'novalidate' => 'true',
+                            'class' => 'mb-0',
+                        ]) !!}
+                            {{ Form::selectGroup('payment_method', '', 'fas fa-wallet', $payment_methods, '', ['change' => 'onChangePaymentMethodSigned', 'id' => 'payment-method', 'class' => 'form-control', 'placeholder' => trans('general.form.select.field', ['field' => trans_choice('general.payment_methods', 1)])], 'mb-0') }}
+                            {!! Form::hidden('invoice_id', $invoice->id, ['v-model' => 'form.invoice_id']) !!}
+                        {!! Form::close() !!}
                     @endif
                 </div>
 
                 <div class="col-md-8 text-right">
-                    <a href="{{ $print_action }}" target="_blank" class="btn btn-success">
+                    <a href="{{ $print_action }}" target="_blank" class="btn btn-success header-button-top">
                         <i class="fa fa-print"></i>&nbsp; {{ trans('general.print') }}
                     </a>
-                    <a href="{{ $pdf_action }}" class="btn btn-white" data-toggle="tooltip" title="{{ trans('invoices.download_pdf') }}">
+                    <a href="{{ $pdf_action }}" class="btn btn-white header-button-top" data-toggle="tooltip" title="{{ trans('invoices.download_pdf') }}">
                         <i class="fa fa-file-pdf"></i>&nbsp; {{ trans('general.download') }}
                     </a>
                 </div>

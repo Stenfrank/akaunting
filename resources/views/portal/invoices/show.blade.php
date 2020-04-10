@@ -165,37 +165,42 @@
                                     <tbody>
                                         <tr class="row">
                                             @stack('name_th_start')
-                                                <th class="col-xs-4 col-sm-3 pl-5">{{ trans_choice($text_override['items'], 2) }}</th>
+                                                <th class="col-xs-4 col-sm-5 pl-5">{{ trans_choice($text_override['items'], 2) }}</th>
                                             @stack('name_th_end')
 
                                             @stack('quantity_th_start')
-                                                <th class="col-xs-4 col-sm-3 text-center">{{ trans($text_override['quantity']) }}</th>
+                                                <th class="col-xs-4 col-sm-1 text-center">{{ trans($text_override['quantity']) }}</th>
                                             @stack('quantity_th_end')
 
                                             @stack('price_th_start')
-                                                <th class="col-sm-3 text-center  pl-5">{{ trans($text_override['price']) }}</th>
+                                                <th class="col-sm-3 text-right d-none d-sm-block">{{ trans($text_override['price']) }}</th>
                                             @stack('price_th_end')
 
                                             @stack('total_th_start')
                                                 <th class="col-xs-4 col-sm-3 text-right pr-5">{{ trans('invoices.total') }}</th>
                                             @stack('total_th_end')
                                         </tr>
-                                        @foreach($invoice->items as $item)
+                                        @foreach($invoice->items as $invoice_item)
                                             <tr class="row">
                                                 @stack('name_td_start')
-                                                    <td class="col-xs-4 col-sm-3 pl-5">{{ $item->name }}</td>
+                                                    <td class="col-xs-4 col-sm-5 pl-5">
+                                                        {{ $invoice_item->name }}
+                                                        @if (!empty($invoice_item->item->description))
+                                                            <br><small class="text-pre-nowrap">{!! \Illuminate\Support\Str::limit($invoice_item->item->description, 500) !!}<small>
+                                                        @endif
+                                                    </td>
                                                 @stack('name_td_end')
 
                                                 @stack('quantity_td_start')
-                                                    <td class="col-xs-4 col-sm-3 text-center">{{ $item->quantity }}</td>
+                                                    <td class="col-xs-4 col-sm-1 text-center">{{ $invoice_item->quantity }}</td>
                                                 @stack('quantity_td_end')
 
                                                 @stack('price_td_start')
-                                                    <td class="col-sm-3 text-center d-none d-sm-block pl-5">@money($item->price, $invoice->currency_code, true)</td>
+                                                    <td class="col-sm-3 text-right d-none d-sm-block">@money($invoice_item->price, $invoice->currency_code, true)</td>
                                                 @stack('price_td_end')
 
                                                 @stack('total_td_start')
-                                                    <td class="col-xs-4 col-sm-3 text-right pr-5">@money($item->total, $invoice->currency_code, true)</td>
+                                                    <td class="col-xs-4 col-sm-3 text-right pr-5">@money($invoice_item->total, $invoice->currency_code, true)</td>
                                                 @stack('total_td_end')
                                             </tr>
                                         @endforeach
@@ -217,7 +222,7 @@
                                                 <th>
                                                     @if ($invoice->notes)
                                                         <p class="form-control-label">{{ trans_choice('general.notes', 2) }}</p>
-                                                        <p class="form-control text-muted long-texts">{{ $invoice->notes }}</p>
+                                                        <p class="text-muted long-texts">{{ $invoice->notes }}</p>
                                                     @endif
                                                 </th>
                                             </tr>
@@ -241,8 +246,10 @@
                                                 @stack($total->code . '_td_end')
                                             @else
                                                 @if ($invoice->paid)
-                                                    <tr class="text-success">
-                                                        <th>{{ trans('invoices.paid') }}:</th>
+                                                    <tr>
+                                                        <th class="text-success">
+                                                            {{ trans('invoices.paid') }}:
+                                                        </th>
                                                         <td class="text-right">- @money($invoice->paid, $invoice->currency_code, true)</td>
                                                     </tr>
                                                 @endif
@@ -264,37 +271,37 @@
 
             @stack('card_footer_start')
                 <div class="card-footer">
-                    <div class="float-right">
-                        @stack('button_print_start')
-                            <a href="{{ route('portal.invoices.print', $invoice->id) }}" target="_blank" class="btn btn-success header-button-top">
-                                <i class="fa fa-print"></i>&nbsp; {{ trans('general.print') }}
-                            </a>
-                        @stack('button_print_end')
-
-                        @stack('button_pdf_start')
-                            <a href="{{ route('portal.invoices.pdf', $invoice->id) }}" class="btn btn-white header-button-top" data-toggle="tooltip" title="{{ trans('invoices.download_pdf') }}">
-                                <i class="fa fa-file-pdf"></i>&nbsp; {{ trans('general.download') }}
-                            </a>
-                        @stack('button_pdf_end')
-                    </div>
-                    <div class="col-md-4">
-                        @if($invoice->status != 'paid')
-                            @if ($payment_methods)
-                            {!! Form::open([
-                                'id' => 'invoice-payment',
-                                'role' => 'form',
-                                'autocomplete' => "off",
-                                'novalidate' => 'true'
-                            ]) !!}
-                                {{ Form::selectGroup('payment_method', '', 'money el-icon-money', $payment_methods, '', ['change' => 'onChangePaymentMethod', 'id' => 'payment-method', 'class' => 'form-control', 'placeholder' => trans('general.form.select.field', ['field' => trans_choice('general.payment_methods', 1)])], 'col-md-12') }}
-                                {!! Form::hidden('invoice_id', $invoice->id, ['v-model' => 'form.invoice_id']) !!}
-                            {!! Form::close() !!}
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-6">
+                            @if (!empty($payment_methods) && !in_array($invoice->status, ['paid', 'cancelled']))
+                                {!! Form::open([
+                                    'id' => 'invoice-payment',
+                                    'role' => 'form',
+                                    'autocomplete' => "off",
+                                    'novalidate' => 'true',
+                                    'class' => 'mb-0'
+                                ]) !!}
+                                    {{ Form::selectGroup('payment_method', '', 'money el-icon-money', $payment_methods, '', ['change' => 'onChangePaymentMethod', 'id' => 'payment-method', 'class' => 'form-control', 'placeholder' => trans('general.form.select.field', ['field' => trans_choice('general.payment_methods', 1)])], 'col-sm-12') }}
+                                    {!! Form::hidden('invoice_id', $invoice->id, ['v-model' => 'form.invoice_id']) !!}
+                                {!! Form::close() !!}
                             @endif
-                        @endif
-                    </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 text-right">
+                            @stack('button_print_start')
+                                <a href="{{ route('portal.invoices.print', $invoice->id) }}" target="_blank" class="btn btn-success header-button-top">
+                                    <i class="fa fa-print"></i>&nbsp; {{ trans('general.print') }}
+                                </a>
+                            @stack('button_print_end')
 
-                    <div id="confirm" class="col-md-12">
-                        <component v-bind:is="method_show_html" @interface="onRedirectConfirm"></component>
+                            @stack('button_pdf_start')
+                                <a href="{{ route('portal.invoices.pdf', $invoice->id) }}" class="btn btn-white header-button-top">
+                                    <i class="fa fa-file-pdf"></i>&nbsp; {{ trans('general.download') }}
+                                </a>
+                            @stack('button_pdf_end')
+                        </div>
+                        <div id="confirm" class="col-sm-12">
+                            <component v-bind:is="method_show_html" @interface="onRedirectConfirm"></component>
+                        </div>
                     </div>
                 </div>
             @stack('card_footer_end')

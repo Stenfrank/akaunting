@@ -2,10 +2,11 @@
 
 namespace App\Abstracts;
 
-use App\Events\Common\ReportFilterShowing;
-use App\Events\Common\ReportFilterApplying;
-use App\Events\Common\ReportGroupApplying;
-use App\Events\Common\ReportGroupShowing;
+use App\Events\Report\FilterApplying;
+use App\Events\Report\FilterShowing;
+use App\Events\Report\GroupApplying;
+use App\Events\Report\GroupShowing;
+use App\Events\Report\RowsShowing;
 use App\Exports\Common\Reports as Export;
 use App\Models\Banking\Transaction;
 use App\Models\Common\Report as Model;
@@ -36,15 +37,19 @@ abstract class Report
 
     public $dates = [];
 
-    public $rows = [];
+    public $row_names = [];
 
-    public $totals = [];
+    public $row_values = [];
+
+    public $footer_totals = [];
 
     public $filters = [];
 
+    public $loaded = false;
+
     public $indents = [
         'table_header' => '0px',
-        'table_rows' => '0px',
+        'table_rows' => '24px',
     ];
 
     public $chart = [
@@ -62,7 +67,10 @@ abstract class Report
         'datasets' => [],
     ];
 
-    public function __construct(Model $model = null, $get_totals = true)
+    public $column_name_width = 'report-column-name';
+    public $column_value_width = 'report-column-value';
+
+    public function __construct(Model $model = null, $load_data = true)
     {
         $this->setGroups();
 
@@ -72,19 +80,28 @@ abstract class Report
 
         $this->model = $model;
 
+        if (!$load_data) {
+            return;
+        }
+
+        $this->load();
+    }
+
+    abstract public function setData();
+
+    public function load()
+    {
         $this->setYear();
         $this->setViews();
         $this->setTables();
         $this->setDates();
         $this->setFilters();
         $this->setRows();
+        $this->setData();
+        $this->setColumnWidth();
 
-        if ($get_totals) {
-            $this->getTotals();
-        }
+        $this->loaded = true;
     }
-
-    abstract public function getTotals();
 
     public function getDefaultName()
     {
@@ -105,37 +122,34 @@ abstract class Report
         return $this->icon;
     }
 
-    public function getTotal()
+    public function getGrandTotal()
     {
-        $sum = 0;
-
-        foreach ($this->totals as $total) {
-            $sum += is_array($total) ? array_sum($total) : $total;
+        if (!$this->loaded) {
+            $this->load();
         }
 
-        $total = money($sum, setting('default.currency'), true);
+        if (!empty($this->footer_totals)) {
+            $sum = 0;
+
+            foreach ($this->footer_totals as $total) {
+                $sum += is_array($total) ? array_sum($total) : $total;
+            }
+
+            $total = money($sum, setting('default.currency'), true);
+        } else {
+            $total = trans('general.na');
+        }
 
         return $total;
-    }
-
-    public function getTableRowList()
-    {
-        $group_prl = Str::plural($this->model->settings->group);
-
-        if ($group_filter = request($group_prl)) {
-            $rows = collect($this->filters[$group_prl])->filter(function ($value, $key) use ($group_filter) {
-                return in_array($key, $group_filter);
-            });
-        } else {
-            $rows = $this->filters[$group_prl];
-        }
-
-        return $rows;
     }
 
     public function getChart()
     {
         $chart = new Chartjs();
+
+        if (empty($this->model->settings->chart)) {
+            return $chart;
+        }
 
         $config = $this->chart[$this->model->settings->chart];
 
@@ -158,7 +172,7 @@ abstract class Report
                     ->fill(false);
             }
         } else {
-            foreach ($this->totals as $total) {
+            foreach ($this->footer_totals as $total) {
                 $chart->dataset($this->model->name, 'line', array_values($total))
                     ->backgroundColor(isset($config['backgroundColor']) ? $config['backgroundColor'] : '#6da252')
                     ->color(isset($config['color']) ? $config['color'] : '#6da252')
@@ -185,7 +199,31 @@ abstract class Report
 
     public function export()
     {
-        return \Excel::download(new Export($this->views['content'], $this), $this->model->name . '.xlsx');
+        return \Excel::download(new Export($this->views['content'], $this), \Str::filename($this->model->name) . '.xlsx');
+    }
+
+    public function setColumnWidth()
+    {
+        if (empty($this->model->settings->period)) {
+            return;
+        }
+
+        $width = '';
+
+        switch ($this->model->settings->period) {
+            case 'quarterly':
+                $width = 'col-sm-2';
+                break;
+            case 'yearly':
+                $width = 'col-sm-4';
+                break;
+        }
+
+        if (empty($width)) {
+            return;
+        }
+
+        $this->column_name_width = $this->column_value_width = $width;
     }
 
     public function setYear()
@@ -214,12 +252,16 @@ abstract class Report
     public function setTables()
     {
         $this->tables = [
-            'default' => 'default'
+            'default' => 'default',
         ];
     }
 
     public function setDates()
     {
+        if (empty($this->model->settings->period)) {
+            return;
+        }
+
         $function = 'sub' . ucfirst(str_replace('ly', '', $this->model->settings->period));
 
         $start = $this->getFinancialStart()->copy()->$function();
@@ -234,7 +276,7 @@ abstract class Report
                     $this->dates[$j] = $date;
 
                     foreach ($this->tables as $table) {
-                        $this->totals[$table][$date] = 0;
+                        $this->footer_totals[$table][$date] = 0;
                     }
 
                     $j += 11;
@@ -248,7 +290,7 @@ abstract class Report
                     $this->dates[$j] = $date;
 
                     foreach ($this->tables as $table) {
-                        $this->totals[$table][$date] = 0;
+                        $this->footer_totals[$table][$date] = 0;
                     }
 
                     $j += 2;
@@ -262,7 +304,7 @@ abstract class Report
                     $this->dates[$j] = $date;
 
                     foreach ($this->tables as $table) {
-                        $this->totals[$table][$date] = 0;
+                        $this->footer_totals[$table][$date] = 0;
                     }
 
                     break;
@@ -272,27 +314,19 @@ abstract class Report
 
     public function setFilters()
     {
-        event(new ReportFilterShowing($this));
+        event(new FilterShowing($this));
     }
 
     public function setGroups()
     {
         $this->groups = [];
 
-        event(new ReportGroupShowing($this));
+        event(new GroupShowing($this));
     }
 
     public function setRows()
     {
-        $list = $this->getTableRowList();
-
-        foreach ($this->dates as $date) {
-            foreach ($this->tables as $table) {
-                foreach ($list as $id => $name) {
-                    $this->rows[$table][$id][$date] = 0;
-                }
-            }
-        }
+        event(new RowsShowing($this));
     }
 
     public function setTotals($items, $date_field, $check_type = false, $table = 'default')
@@ -305,45 +339,40 @@ abstract class Report
 
             $id_field = $this->model->settings->group . '_id';
 
-            if (!isset($this->rows[$table][$item->$id_field]) ||
-                !isset($this->rows[$table][$item->$id_field][$date]) ||
-                !isset($this->totals[$table][$date]))
-            {
+            if (
+                !isset($this->row_values[$table][$item->$id_field])
+                || !isset($this->row_values[$table][$item->$id_field][$date])
+                || !isset($this->footer_totals[$table][$date])
+            ) {
                 continue;
             }
 
             $amount = $item->getAmountConvertedToDefault();
 
-            if (!$check_type) {
-                $this->rows[$table][$item->$id_field][$date] += $amount;
+            $type = (($item instanceof Invoice) || (($item instanceof Transaction) && ($item->type == 'income'))) ? 'income' : 'expense';
 
-                $this->totals[$table][$date] += $amount;
+            if (($check_type == false) || ($type == 'income')) {
+                $this->row_values[$table][$item->$id_field][$date] += $amount;
+
+                $this->footer_totals[$table][$date] += $amount;
             } else {
-                $type = (($item instanceof Invoice) || (($item instanceof Transaction) && ($item->type == 'income'))) ? 'income' : 'expense';
+                $this->row_values[$table][$item->$id_field][$date] -= $amount;
 
-                if ($type == 'income') {
-                    $this->rows[$table][$item->$id_field][$date] += $amount;
-
-                    $this->totals[$table][$date] += $amount;
-                } else {
-                    $this->rows[$table][$item->$id_field][$date] -= $amount;
-
-                    $this->totals[$table][$date] -= $amount;
-                }
+                $this->footer_totals[$table][$date] -= $amount;
             }
         }
     }
 
     public function applyFilters($model, $args = [])
     {
-        event(new ReportFilterApplying($this, $model, $args));
+        event(new FilterApplying($this, $model, $args));
 
         return $model;
     }
 
     public function applyGroups($model, $args = [])
     {
-        event(new ReportGroupApplying($this, $model, $args));
+        event(new GroupApplying($this, $model, $args));
 
         return $model;
     }
@@ -372,15 +401,15 @@ abstract class Report
     {
         $print_url = 'common/reports/' . $this->model->id . '/' . $action . '?year='. $this->year;
 
-        collect(request('accounts'))->each(function($item) use(&$print_url) {
+        collect(request('accounts'))->each(function($item) use (&$print_url) {
             $print_url .= '&accounts[]=' . $item;
         });
 
-        collect(request('customers'))->each(function($item) use(&$print_url) {
+        collect(request('customers'))->each(function($item) use (&$print_url) {
             $print_url .= '&customers[]=' . $item;
         });
 
-        collect(request('categories'))->each(function($item) use(&$print_url) {
+        collect(request('categories'))->each(function($item) use (&$print_url) {
             $print_url .= '&categories[]=' . $item;
         });
 

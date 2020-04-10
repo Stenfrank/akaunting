@@ -8,6 +8,7 @@ return [
         'deleted'           => ':type silindi!',
         'duplicated'        => ':type çoğaltıldı!',
         'imported'          => ':type içe aktarıldı!',
+        'exported'          => ':type dışa aktarıldı!',
         'enabled'           => ':type etkinleştirildi!',
         'disabled'          => ':type devre dışı bırakıldı!',
     ],
@@ -27,6 +28,8 @@ return [
     'warning' => [
         'deleted'           => 'Uyarı: <b>:name</b> silinemez çünkü :text ile ilişkilidir.',
         'disabled'          => 'Uyarı: <b>:name</b> devre dışı bırakılamaz çünkü :text ile ilişkilidir.',
+        'reconciled_tran'   => 'Uyarı: İşlem değiştirilemez/silinemez çünkü mütabakatı yapıldı.',
+        'reconciled_doc'    => 'Uyarı: :type değiştirilemez/silinemez çünkü mütabakatı yapılmış işlemleri var.',
         'disable_code'      => 'Uyarı: <b>:name</b> devre dışı bırakılamaz veya kur değiştirilemez çünkü :text ile ilişkilidir.',
         'payment_cancel'    => 'Uyarı: :method ödemesini iptal ettiniz!',
     ],

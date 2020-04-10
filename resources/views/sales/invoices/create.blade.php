@@ -19,7 +19,7 @@
                 <div class="row">
                     {{ Form::selectAddNewGroup('contact_id', trans_choice('general.customers', 1), 'user', $customers, config('general.customers'), ['required' => 'required', 'path' => route('modals.customers.create'), 'change' => 'onChangeContact']) }}
 
-                    {{ Form::selectGroup('currency_code', trans_choice('general.currencies', 1), 'exchange-alt', $currencies, setting('default.currency'), ['required' => 'required', 'change' => 'onChangeCurrency']) }}
+                    {{ Form::selectAddNewGroup('currency_code', trans_choice('general.currencies', 1), 'exchange-alt', $currencies, setting('default.currency'), ['required' => 'required', 'model' => 'form.currency_code', 'path' => route('modals.currencies.create'), 'field' => ['key' => 'code', 'value' => 'name'], 'change' => 'onChangeCurrency']) }}
 
                     {{ Form::dateGroup('invoiced_at', trans('invoices.invoice_date'), 'calendar', ['id' => 'invoiced_at', 'class' => 'form-control datepicker', 'required' => 'required', 'date-format' => 'Y-m-d', 'autocomplete' => 'off'], request()->get('invoiced_at', Date::now()->toDateString())) }}
 
@@ -29,34 +29,41 @@
 
                     {{ Form::textGroup('order_number', trans('invoices.order_number'), 'shopping-cart', []) }}
 
-                    <div class="col-md-12 mb-4">
+                    <div class="col-sm-12 mb-4">
+                        @php $item_colspan = in_array(setting('localisation.discount_location', 'total'), ['item', 'both']) ? '6' : '5' @endphp
                         {!! Form::label('items', trans_choice($text_override['items'], 2), ['class' => 'form-control-label']) !!}
-                        <div class="table-responsive">
+                        <div class="table-responsive overflow-x-scroll overflow-y-hidden">
                             <table class="table table-bordered" id="items">
                                 <thead class="thead-light">
-                                    <tr class="row">
+                                    <tr>
                                         @stack('actions_th_start')
-                                            <th class="col-md-1 action-column border-right-0 border-bottom-0">{{ trans('general.actions') }}</th>
+                                            <th class="text-center border-right-0 border-bottom-0">{{ trans('general.actions') }}</th>
                                         @stack('actions_th_end')
 
                                         @stack('name_th_start')
-                                            <th class="col-md-3 text-left border-right-0 border-bottom-0">{{ trans('general.name') }}</th>
+                                            <th class="text-left border-right-0 border-bottom-0">{{ trans('general.name') }}</th>
                                         @stack('name_th_end')
 
                                         @stack('quantity_th_start')
-                                            <th class="col-md-2 text-center border-right-0 border-bottom-0">{{ trans($text_override['quantity']) }}</th>
+                                            <th class="text-center border-right-0 border-bottom-0 w-10">{{ trans($text_override['quantity']) }}</th>
                                         @stack('quantity_th_end')
 
                                         @stack('price_th_start')
-                                            <th class="col-md-2 text-right border-right-0 border-bottom-0">{{ trans($text_override['price']) }}</th>
+                                            <th class="text-right border-right-0 border-bottom-0">{{ trans($text_override['price']) }}</th>
                                         @stack('price_th_end')
 
+                                        @if (in_array(setting('localisation.discount_location', 'total'), ['item', 'both']))
+                                            @stack('discount_th_start')
+                                                <th class="text-right border-right-0 border-bottom-0">{{ trans('invoices.discount') }}</th>
+                                            @stack('discount_th_end')
+                                        @endif
+
                                         @stack('taxes_th_start')
-                                            <th class="col-md-2 text-right border-right-0 border-bottom-0">{{ trans_choice('general.taxes', 1) }}</th>
+                                            <th class="text-right border-right-0 border-bottom-0">{{ trans_choice('general.taxes', 1) }}</th>
                                         @stack('taxes_th_end')
 
                                         @stack('total_th_start')
-                                            <th class="col-md-2 text-right border-bottom-0">{{ trans('invoices.total') }}</th>
+                                            <th class="text-right border-bottom-0 item-total">{{ trans('invoices.total') }}</th>
                                         @stack('total_th_end')
                                     </tr>
                                 </thead>
@@ -64,92 +71,119 @@
                                     @include('sales.invoices.item')
 
                                     @stack('add_item_td_start')
-                                        <tr class="row" id="addItem">
-                                            <td class="col-md-1 action-column border-right-0 border-bottom-0"><button type="button" @click="onAddItem" id="button-add-item" data-toggle="tooltip" title="{{ trans('general.add') }}" class="btn btn-icon btn-outline-success btn-lg" data-original-title="{{ trans('general.add') }}"><i class="fa fa-plus"></i></button></td>
-                                            <td class="col-md-11 text-right border-bottom-0"></td>
+                                        <tr id="addItem">
+                                            <td class="text-center border-right-0 border-bottom-0">
+                                                <button type="button" @click="onAddItem" id="button-add-item" data-toggle="tooltip" title="{{ trans('general.add') }}" class="btn btn-icon btn-outline-success btn-lg" data-original-title="{{ trans('general.add') }}"><i class="fa fa-plus"></i>
+                                                </button>
+                                            </td>
+                                            <td class="text-right border-bottom-0" colspan="{{ $item_colspan }}" :colspan="colspan"></td>
                                         </tr>
                                     @stack('add_item_td_end')
 
                                     @stack('sub_total_td_start')
-                                        <tr class="row" id="tr-subtotal">
-                                            <td class="col-md-10 text-right border-right-0 border-bottom-0">
+                                        <tr id="tr-subtotal">
+                                            <td class="text-right border-right-0 border-bottom-0" colspan="{{ $item_colspan }}" :colspan="colspan">
                                                 <strong>{{ trans('invoices.sub_total') }}</strong>
                                             </td>
-                                            <td class="col-md-2 text-right border-bottom-0 long-texts">
-                                                <span id="sub-total" v-html="totals.sub">0</span>
+                                            <td class="text-right border-bottom-0 long-texts">
+                                                {{ Form::moneyGroup('sub_total', '', '', ['disabled' => true, 'required' => 'required', 'v-model' => 'totals.sub', 'currency' => $currency, 'masked' => 'true'], 0.00, 'text-right d-none') }}
+                                                <span id="sub-total" v-if="totals.sub" v-html="totals.sub"></span>
+                                                <span v-else>@money(0, $currency->code, true)</span>
                                             </td>
                                         </tr>
                                     @stack('sub_total_td_end')
 
-                                    @stack('add_discount_td_start')
-                                        <tr class="row" id="tr-discount">
-                                            <td class="col-md-10 text-right border-right-0 border-bottom-0">
-                                                <el-popover
-                                                    popper-class="p-0 h-0"
-                                                    placement="bottom"
-                                                    width="300"
-                                                    v-model="discount">
-                                                    <div class="card">
-                                                        <div class="discount card-body">
-                                                            <div class="row align-items-center">
-                                                                <div class="col-md-6">
-                                                                    <div class="input-group input-group-merge">
-                                                                        <div class="input-group-prepend">
-                                                                            <span class="input-group-text" id="input-discount">
-                                                                                <i class="fa fa-percent"></i>
-                                                                            </span>
+                                    @if (in_array(setting('localisation.discount_location', 'total'), ['item', 'both']))
+                                        @stack('item_discount_td_start')
+                                            <tr id="tr-subtotal">
+                                                <td class="text-right border-right-0 border-bottom-0" colspan="{{ $item_colspan }}" :colspan="colspan">
+                                                    <strong>{{ trans('invoices.item_discount') }}</strong>
+                                                </td>
+                                                <td class="text-right border-bottom-0 long-texts">
+                                                    {{ Form::moneyGroup('item_discount', '', '', ['disabled' => true, 'required' => 'required', 'v-model' => 'totals.item_discount', 'currency' => $currency, 'masked' => 'true'], 0.00, 'text-right d-none') }}
+                                                    <span id="item-discount" v-if="totals.item_discount" v-html="totals.item_discount"></span>
+                                                    <span v-else>@money(0, $currency->code, true)</span>
+                                                </td>
+                                            </tr>
+                                        @stack('item_discount_td_end')
+                                    @endif
+
+                                    @if (in_array(setting('localisation.discount_location', 'total'), ['total', 'both']))
+                                        @stack('add_discount_td_start')
+                                            <tr id="tr-discount">
+                                                <td class="text-right border-right-0 border-bottom-0" colspan="{{ $item_colspan }}" :colspan="colspan">
+                                                    <el-popover
+                                                        popper-class="p-0 h-0"
+                                                        placement="bottom"
+                                                        width="300"
+                                                        v-model="discount">
+                                                        <div class="card d-none" :class="[{'show' : discount}]">
+                                                            <div class="discount card-body">
+                                                                <div class="row align-items-center">
+                                                                    <div class="col-sm-6">
+                                                                        <div class="input-group input-group-merge">
+                                                                            <div class="input-group-prepend">
+                                                                                <span class="input-group-text" id="input-discount">
+                                                                                    <i class="fa fa-percent"></i>
+                                                                                </span>
+                                                                            </div>
+                                                                            {!! Form::number('pre_discount', null, ['id' => 'pre-discount', 'class' => 'form-control']) !!}
                                                                         </div>
-                                                                        {!! Form::number('pre_discount', null, ['id' => 'pre-discount', 'class' => 'form-control']) !!}
+                                                                    </div>
+                                                                    <div class="col-sm-6">
+                                                                        <div class="discount-description">
+                                                                            <strong>{{ trans('invoices.discount_desc') }}</strong>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-md-6">
-                                                                    <div class="discount-description">
-                                                                        <strong>{{ trans('invoices.discount_desc') }}</strong>
+                                                            </div>
+                                                            <div class="discount card-footer">
+                                                                <div class="row float-right">
+                                                                    <div class="col-xs-12 col-sm-12">
+                                                                        <a href="javascript:void(0)" @click="discount = false" class="btn btn-outline-secondary header-button-top" @click="closePayment">
+                                                                            {{ trans('general.cancel') }}
+                                                                        </a>
+                                                                        {!! Form::button(trans('general.save'), ['type' => 'button', 'id' => 'save-discount', '@click' => 'onAddDiscount', 'class' => 'btn btn-success header-button-top']) !!}
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="discount card-footer">
-                                                            <div class="row text-center">
-                                                                <div class="col-md-12">
-                                                                    <a href="javascript:void(0)" @click="discount = false"  class="btn btn-icon btn-outline-secondary">
-                                                                        <span class="btn-inner--icon"><i class="fas fa-times"></i></span>
-                                                                        <span class="btn-inner--text">{{ trans('general.cancel') }}</span>
-                                                                    </a>
-                                                                    {!! Form::button('<span class="fa fa-save"></span> &nbsp;' . trans('general.save'), ['type' => 'button', 'id' => 'save-discount', '@click' => 'onAddDiscount', 'class' => 'btn btn-success']) !!}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <el-link class="cursor-pointer text-info" slot="reference" type="primary" v-if="!totals.discount_text">{{ trans('invoices.add_discount') }}</el-link>
-                                                    <el-link slot="reference" type="primary" v-if="totals.discount_text" v-html="totals.discount_text"></el-link>
-                                                </el-popover>
-                                            </td>
-                                            <td class="col-md-2 text-right border-bottom-0">
-                                                <span id="discount-total" v-html="totals.discount"></span>
-                                                {!! Form::hidden('discount', null, ['id' => 'discount', 'class' => 'form-control text-right', 'v-model' => 'form.discount']) !!}
-                                            </td>
-                                        </tr>
-                                    @stack('add_discount_td_end')
+                                                        <el-link class="cursor-pointer text-info" slot="reference" type="primary" v-if="!totals.discount_text">{{ trans('invoices.add_discount') }}</el-link>
+                                                        <el-link slot="reference" type="primary" v-if="totals.discount_text" v-html="totals.discount_text"></el-link>
+                                                    </el-popover>
+                                                </td>
+                                                <td class="text-right border-bottom-0">
+                                                    {{ Form::moneyGroup('discount_total', '', '', ['disabled' => true, 'required' => 'required', 'v-model' => 'totals.discount', 'currency' => $currency, 'masked' => 'true'], 0.00, 'text-right d-none') }}
+                                                    <span id="discount-total" v-if="totals.discount" v-html="totals.discount"></span>
+                                                    <span v-else>@money(0, $currency->code, true)</span>
+                                                    {!! Form::hidden('discount', null, ['id' => 'discount', 'class' => 'form-control text-right', 'v-model' => 'form.discount']) !!}
+                                                </td>
+                                            </tr>
+                                        @stack('add_discount_td_end')
+                                    @endif
 
                                     @stack('tax_total_td_start')
-                                        <tr class="row" id="tr-tax">
-                                            <td class="col-md-10 text-right border-right-0 border-bottom-0">
+                                        <tr id="tr-tax">
+                                            <td class="text-right border-right-0 border-bottom-0" colspan="{{ $item_colspan }}" :colspan="colspan">
                                                 <strong>{{ trans_choice('general.taxes', 1) }}</strong>
                                             </td>
-                                            <td class="col-md-2 text-right border-bottom-0 long-texts">
-                                                <span id="tax-total" v-html="totals.tax">0</span>
+                                            <td class="text-right border-bottom-0 long-texts">
+                                                {{ Form::moneyGroup('tax_total', '', '', ['disabled' => true, 'required' => 'required', 'v-model' => 'totals.tax', 'currency' => $currency, 'masked' => 'true'], 0.00, 'text-right d-none') }}
+                                                <span id="tax-total" v-if="totals.tax" v-html="totals.tax"></span>
+                                                <span v-else>@money(0, $currency->code, true)</span>
                                             </td>
                                         </tr>
                                     @stack('tax_total_td_end')
 
                                     @stack('grand_total_td_start')
-                                        <tr class="row" id="tr-total">
-                                            <td class="col-md-10 text-right border-right-0">
+                                        <tr id="tr-total">
+                                            <td class="text-right border-right-0" colspan="{{ $item_colspan }}" :colspan="colspan">
                                                 <strong>{{ trans('invoices.total') }}</strong>
                                             </td>
-                                            <td class="col-md-2 text-right long-texts">
-                                                <span id="grand-total" v-html="totals.total">0</span>
+                                            <td class="text-right long-texts">
+                                                {{ Form::moneyGroup('grand_total', '', '', ['disabled' => true, 'required' => 'required', 'v-model' => 'totals.total', 'currency' => $currency, 'masked' => 'true'], 0.00, 'text-right d-none') }}
+                                                <span id="grand-total" v-if="totals.total" v-html="totals.total"></span>
+                                                <span v-else>@money(0, $currency->code, true)</span>
                                             </td>
                                         </tr>
                                     @stack('grand_total_td_end')
@@ -158,9 +192,9 @@
                         </div>
                     </div>
 
-                    {{ Form::textareaGroup('notes', trans_choice('general.notes', 2), '', setting('invoice.notes')) }}
+                    {{ Form::textareaGroup('notes', trans_choice('general.notes', 2), '', setting('invoice.notes'), ['rows' => '3'], 'col-md-6') }}
 
-                    {{ Form::textareaGroup('footer', trans('general.footer'), '', setting('invoice.footer')) }}
+                    {{ Form::textareaGroup('footer', trans('general.footer'), '', setting('invoice.footer'), ['rows' => '3'], 'col-md-6') }}
 
                     {{ Form::selectAddNewGroup('category_id', trans_choice('general.categories', 1), 'folder', $categories, setting('defaults.category'), ['required' => 'required', 'path' => route('modals.categories.create') . '?type=income']) }}
 
@@ -180,8 +214,8 @@
             </div>
 
             <div class="card-footer">
-                <div class="row float-right">
-                    {{ Form::saveButtons('sales/invoices') }}
+                <div class="row save-buttons">
+                    {{ Form::saveButtons('invoices.index') }}
                 </div>
             </div>
         {!! Form::close() !!}
@@ -190,7 +224,7 @@
 
 @push('scripts_start')
     <script type="text/javascript">
-        var invoice_items = false;
+        var invoice_items = {!! (old('items')) ? json_encode(old('items')) : 'false' !!};
     </script>
 
     <script src="{{ asset('public/js/sales/invoices.js?v=' . version('short')) }}"></script>

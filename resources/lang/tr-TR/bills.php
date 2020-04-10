@@ -13,6 +13,7 @@ return [
     'price'                 => 'Fiyat',
     'sub_total'             => 'Ara Toplam',
     'discount'              => 'İndirim',
+    'item_discount'         => 'Satır İndirimi',
     'tax_total'             => 'Vergi Toplamı',
     'total'                 => 'Toplam',
 
@@ -28,22 +29,29 @@ return [
     'histories'             => 'Geçmiş',
     'payments'              => 'Ödemeler',
     'add_payment'           => 'Ödeme Ekle',
+    'mark_paid'             => 'Ödendi İşaretle',
     'mark_received'         => 'Teslim Alındı İşaretle',
+    'mark_cancelled'        => 'İptal Edildi İşaretle',
     'download_pdf'          => 'PDF İndir',
     'send_mail'             => 'Email Gönder',
     'create_bill'           => 'Fatura Oluştur',
     'receive_bill'          => 'Faturayı Al',
     'make_payment'          => 'Ödeme Yap',
 
-    'status' => [
+    'statuses' => [
         'draft'             => 'Taslak',
-        'received'          => 'Teslim Alındı',
-        'partial'           => 'Kısmi',
-        'paid'              => 'Ödenmiş',
+        'received'          => 'Alındı',
+        'partial'           => 'Kısmi Ödeme',
+        'paid'              => 'Ödendi',
+        'overdue'           => 'Gecikmiş',
+        'unpaid'            => 'Ödenmemiş',
+        'cancelled'         => 'İptal Edildi',
     ],
 
     'messages' => [
-        'received'          => 'Fatura başarıyla teslim alındı olarak işaretlendi!',
+        'marked_received'   => 'Fatura alındı olarak işaretlendi!',
+        'marked_paid'       => 'Fatura ödendi olark işaretlendi!',
+        'marked_cancelled'  => 'Fatura iptal edildi olarak işaretlendi!',
         'draft'             => 'Bu bir <b>TASLAK</b> faturadır ve alındıktan sonra grafiklere yansıtılacaktır.',
 
         'status' => [

@@ -24,7 +24,7 @@
 
                     {{ Form::textGroup('tax_number', trans('general.tax_number'), 'percent', []) }}
 
-                    {{ Form::selectGroup('currency_code', trans_choice('general.currencies', 1), 'exchange-alt', $currencies, $vendor->currency_code) }}
+                    {{ Form::selectAddNewGroup('currency_code', trans_choice('general.currencies', 1), 'exchange-alt', $currencies, $vendor->currency_code, ['required' => 'required', 'path' => route('modals.currencies.create'), 'field' => ['key' => 'code', 'value' => 'name']]) }}
 
                     {{ Form::textGroup('phone', trans('general.phone'), 'phone', []) }}
 
@@ -42,8 +42,8 @@
 
             @permission('update-purchases-vendors')
                 <div class="card-footer">
-                    <div class="float-right">
-                        {{ Form::saveButtons('purchases/vendors') }}
+                    <div class="row save-buttons">
+                        {{ Form::saveButtons('vendors.index') }}
                     </div>
                 </div>
             @endpermission

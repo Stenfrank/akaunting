@@ -29,6 +29,12 @@ return [
             'before'        => 'Antes do número',
             'after'         => 'Depois do número',
         ],
+        'discount_location' => [
+            'name'          => 'Localização do desconto',
+            'item'          => 'Na linha',
+            'total'         => 'No total',
+            'both'          => 'Em ambas, na linha e no total',
+        ],
     ],
 
     'invoice' => [
@@ -52,6 +58,10 @@ return [
         'subheading'        => 'Subtítulo',
         'due_receipt'       => 'Vence após recebimento',
         'due_days'          => 'Vence em :days dias',
+        'choose_template'   => 'Escolha o modelo da fatura',
+        'default'           => 'Padrão',
+        'classic'           => 'Clássico',
+        'modern'            => 'Moderno',
     ],
 
     'default' => [

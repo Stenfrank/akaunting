@@ -28,6 +28,7 @@ return [
     'histories'             => 'Vēsture',
     'payments'              => 'Maksājumi',
     'add_payment'           => 'Pievienot maksājumu',
+    'mark_paid'             => 'Atzīmēt kā samaksātu',
     'mark_received'         => 'Atzīmēt kā aņemtu',
     'download_pdf'          => 'Lejupielādēt PDF',
     'send_mail'             => 'Sūtīt e-pastu',
@@ -35,15 +36,18 @@ return [
     'receive_bill'          => 'Saņemt rēķinu',
     'make_payment'          => 'Veikt maksājumu',
 
-    'status' => [
-        'draft'             => 'Melnraksts',
-        'received'          => 'Saņemts',
-        'partial'           => 'Daļējs',
-        'paid'              => 'Samaksāts',
+    'statuses' => [
+        'draft'             => 'Draft',
+        'received'          => 'Received',
+        'partial'           => 'Partial',
+        'paid'              => 'Paid',
+        'overdue'           => 'Overdue',
+        'unpaid'            => 'Unpaid',
     ],
 
     'messages' => [
         'received'          => 'Rēķina saņemšana ir apstiprināta!',
+        'marked_paid'       => 'Rēķins atzīmēts kā samaksāts!',
         'draft'             => 'This is a <b>DRAFT</b> bill and will be reflected to charts after it gets received.',
 
         'status' => [

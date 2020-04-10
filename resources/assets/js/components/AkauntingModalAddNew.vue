@@ -7,7 +7,7 @@
          tabindex="-1"
          role="dialog"
          :aria-hidden="!show">
-        <div class="modal-dialog">
+        <div class="modal-dialog" :class="modalDialogClass">
             <slot name="modal-content">
             <div class="modal-content">
                 <div class="card-header pb-2">
@@ -17,25 +17,22 @@
                     </slot>
                 </div>
                 <slot name="modal-body">
-                    <div class="modal-body" v-if="!is_component" v-html="message">
+                    <div class="modal-body pb-0" v-if="!is_component" v-html="message">
                     </div>
-                    <div class="modal-body" v-else>
+                    <div class="modal-body pb-0" v-else>
                         <form id="form-create" method="POST" action="#"/>
                         <component v-bind:is="component"></component>
                     </div>
                 </slot>
-                <div class="card-footer border-top-0">
+                <div class="card-footer border-top-0 pt-0">
                     <slot name="card-footer">
                         <div class="float-right">
-                            <button type="button" class="btn btn-icon" :class="buttons.cancel.class" @click="onCancel">
-                                <span class="btn-inner--icon"><i :class="buttons.cancel.icon"></i></span>
-                                <span class="btn-inner--text">{{ buttons.cancel.text }}</span>
+                            <button type="button" class="btn btn-outline-secondary" :class="buttons.cancel.class" @click="onCancel">
+                                {{ buttons.cancel.text }}
                             </button>
 
-                            <button :disabled="form.loading" type="button" class="btn btn-icon button-submit" :class="buttons.confirm.class" @click="onSubmit">
-                                <div v-if="form.loading" class="aka-loader-frame btn-delete"><div class="aka-loader"></div></div>
-                                <span v-if="!form.loading" class="btn-inner--icon"><i :class="buttons.confirm.icon"></i></span>
-                                <span v-if="!form.loading" class="btn-inner--text">{{ buttons.confirm.text }}</span>
+                            <button :disabled="form.loading" type="button" class="btn button-submit" :class="buttons.confirm.class" @click="onSubmit">
+                                <div class="aka-loader"></div><span>{{ buttons.confirm.text }}</span>
                             </button>
                         </div>
                     </slot>
@@ -48,8 +45,11 @@
 </template>
 
 <script>
+import Vue from 'vue';
+
 import { SlideYUpTransition } from "vue2-transitions";
 import AkauntingModal from './AkauntingModal';
+import AkauntingMoney from './AkauntingMoney';
 import AkauntingRadioGroup from './forms/AkauntingRadioGroup';
 import AkauntingSelect from './AkauntingSelect';
 import AkauntingDate from './AkauntingDate';
@@ -66,6 +66,7 @@ export default {
         AkauntingRadioGroup,
         AkauntingSelect,
         AkauntingModal,
+        AkauntingMoney,
         AkauntingDate,
         AkauntingRecurring,
         [ColorPicker.name]: ColorPicker,
@@ -73,6 +74,7 @@ export default {
 
     props: {
         show: Boolean,
+        modalDialogClass: '',
         is_component: Boolean,
 
         title: {
@@ -93,12 +95,10 @@ export default {
                 return {
                     cancel: {
                         text: 'Cancel',
-                        icon: 'fas fa-times',
                         class: 'btn-outline-secondary',
                     },
                     confirm: {
                         text: 'Save',
-                        icon: 'fas fa-save',
                         class: 'btn-success',
                     }
                 };
@@ -119,6 +119,14 @@ export default {
 
             display: this.show,
             component:'',
+            money: {
+                decimal: '.',
+                thousands: ',',
+                prefix: '$ ',
+                suffix: '',
+                precision: 2,
+                masked: false /* doesn't work with directive */
+            },
         };
     },
 
@@ -132,6 +140,7 @@ export default {
                         AkauntingRadioGroup,
                         AkauntingSelect,
                         AkauntingModal,
+                        AkauntingMoney,
                         AkauntingDate,
                         AkauntingRecurring,
                         [ColorPicker.name]: ColorPicker,
@@ -150,6 +159,14 @@ export default {
                     data: function () {
                         return {
                             form: {},
+                            currency: {
+                                decimal: '.',
+                                thousands: ',',
+                                prefix: '$ ',
+                                suffix: '',
+                                precision: 2,
+                                masked: false /* doesn't work with directive */
+                            },
                             color: '#55588b',
                             predefineColors: [
                                 '#3c3f72',
@@ -170,6 +187,28 @@ export default {
 
                         onChangeColorInput() {
                             this.color = this.form.color;
+                        },
+
+                        onChangeRate() {
+                            this.form.rate = this.form.rate.replace(',', '.');
+                        },
+
+                        onChangeCode(code) {
+                            axios.get(url + '/settings/currencies/config', {
+                                params: {
+                                    code: code
+                                }
+                            })
+                            .then(response => {
+                                this.form.rate = response.data.rate;
+                                this.form.precision = response.data.precision;
+                                this.form.symbol = response.data.symbol;
+                                this.form.symbol_first = response.data.symbol_first;
+                                this.form.decimal_mark = response.data.decimal_mark;
+                                this.form.thousands_separator = response.data.thousands_separator;
+                            })
+                            .catch(error => {
+                            });
                         }
                     }
                 })

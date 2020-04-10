@@ -29,6 +29,12 @@ return [
             'before'        => 'Sayıdan Önce',
             'after'         => 'Sayıdan Sonra',
         ],
+        'discount_location' => [
+            'name'          => 'İndirim Konumu',
+            'item'          => 'Satırda',
+            'total'         => 'Toplamda',
+            'both'          => 'Satırda ve toplamda',
+        ],
     ],
 
     'invoice' => [
@@ -52,6 +58,10 @@ return [
         'subheading'        => 'Altbaşlık',
         'due_receipt'       => 'Teslim alındığında vadeli',
         'due_days'          => ':days vadeli',
+        'choose_template'   => 'Fatura şablonu seçin',
+        'default'           => 'Varsayılan',
+        'classic'           => 'Klasik',
+        'modern'            => 'Modern',
     ],
 
     'default' => [

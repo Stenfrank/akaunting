@@ -35,11 +35,13 @@ return [
     'receive_bill'          => 'Отримати рахунок',
     'make_payment'          => 'Оплатити',
 
-    'status' => [
-        'draft'             => 'Створено',
+    'statuses' => [
+        'draft'             => 'Чернетка',
         'received'          => 'Отримано',
         'partial'           => 'Частково оплачено',
         'paid'              => 'Оплачено',
+        'overdue'           => 'Протерміновано',
+        'unpaid'            => 'Неоплачено',
     ],
 
     'messages' => [

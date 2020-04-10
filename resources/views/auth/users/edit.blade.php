@@ -18,7 +18,7 @@
 
             <div class="card-body">
                 <div class="row">
-                    {{ Form::textGroup('name', trans('general.name'), 'user') }}
+                    {{ Form::textGroup('name', trans('general.name'), 'font') }}
 
                     {{ Form::emailGroup('email', trans('general.email'), 'envelope') }}
 
@@ -28,13 +28,19 @@
 
                     {{ Form::selectGroup('locale', trans_choice('general.languages', 1), 'flag', language()->allowed(), $user->locale) }}
 
+                    {{ Form::selectGroup('landing_page', trans('auth.landing_page'), 'sign-in-alt', $routes, $user->landing_page) }}
+
                     @if (setting('default.use_gravatar', '0') == '1')
                         @stack('picture_input_start')
-                            <div class="form-group col-md-6">
+                            <div class="form-group col-md-6 disabled">
                                 {!! Form::label('picture', trans_choice('general.pictures', 1), ['class' => 'control-label']) !!}
-                                <div class="input-group">
-                                    <div class="input-group-addon"><i class="fa fa-picture-o"></i></div>
-                                    {!! Form::text('fake_picture', null, ['id' => 'fake_picture', 'class' => 'form-control', 'disabled' => 'disabled', 'placeholder' => trans('settings.appearance.use_gravatar')]) !!}
+                                <div class="input-group input-group-merge">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="fa fa-image"></i>
+                                        </span>
+                                    </div>
+                                    {!! Form::text('fake_picture', null, ['id' => 'fake_picture', 'class' => 'form-control', 'disabled' => 'disabled', 'placeholder' => trans('settings.default.use_gravatar')]) !!}
                                 </div>
                             </div>
                         @stack('picture_input_end')
@@ -56,8 +62,8 @@
 
             @permission('update-auth-users')
                 <div class="card-footer">
-                    <div class="row float-right">
-                        {{ Form::saveButtons('auth/users') }}
+                    <div class="row save-buttons">
+                        {{ Form::saveButtons('users.index') }}
                     </div>
                 </div>
             @endpermission

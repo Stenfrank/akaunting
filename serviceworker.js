@@ -7,8 +7,7 @@ var filesToCache = [
     'public/img/icons/akaunting-152x152.png',
     'public/img/icons/akaunting-192x192.png',
     'public/img/icons/akaunting-384x384.png',
-    'public/img/icons/akaunting-512x512.png',
-    'public/img/icons/akaunting-640x1136.png'
+    'public/img/icons/akaunting-512x512.png'
 ];
 
 /*

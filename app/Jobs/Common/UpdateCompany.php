@@ -33,17 +33,13 @@ class UpdateCompany extends Job
      */
     public function handle()
     {
-        // Check if user can access company
         $this->authorize();
 
-        // Update company
         $this->company->update($this->request->all());
 
-        // Clear current settings
+        // Clear current and load given company settings
         setting()->setExtraColumns(['company_id' => $this->company->id]);
         setting()->forgetAll();
-
-        // Load settings based on the given company
         setting()->load(true);
 
         if ($this->request->has('name')) {
@@ -89,6 +85,13 @@ class UpdateCompany extends Job
      */
     public function authorize()
     {
+        // Can't disable active company
+        if (($this->request->get('enabled', 1) == 0) && ($this->company->id == session('company_id'))) {
+            $message = trans('companies.error.disable_active');
+
+            throw new \Exception($message);
+        }
+
         // Check if user can access company
         if (!$this->isUserCompany($this->company->id)) {
             $message = trans('companies.error.not_user_company');

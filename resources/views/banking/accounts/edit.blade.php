@@ -22,7 +22,7 @@
 
                     {{ Form::textGroup('number', trans('accounts.number'), 'pencil-alt') }}
 
-                    {{ Form::selectGroup('currency_code', trans_choice('general.currencies', 1), 'exchange-alt', $currencies, $account->currency_code, ['required' => 'required', 'change' => 'onChangeCurrency']) }}
+                    {{ Form::selectAddNewGroup('currency_code', trans_choice('general.currencies', 1), 'exchange-alt', $currencies, $account->currency_code, ['required' => 'required', 'path' => route('modals.currencies.create'), 'field' => ['key' => 'code', 'value' => 'name'], 'change' => 'onChangeCurrency']) }}
 
                     {{ Form::moneyGroup('opening_balance', trans('accounts.opening_balance'), 'balance-scale', ['required' => 'required', 'currency' => $currency], $account->opening_balance) }}
 
@@ -40,8 +40,8 @@
 
             @permission('update-banking-accounts')
                 <div class="card-footer">
-                    <div class="row float-right">
-                        {{ Form::saveButtons('banking/accounts') }}
+                    <div class="row save-buttons">
+                        {{ Form::saveButtons('accounts.index') }}
                     </div>
                 </div>
             @endpermission

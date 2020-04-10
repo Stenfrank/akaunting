@@ -4,10 +4,9 @@
 
 @section('new_button')
     @permission('create-common-reports')
-    <span>
-        <a href="{{ route('reports.create') }}" class="btn btn-success btn-sm"><span class="fa fa-plus"></span> &nbsp;{{ trans('general.add_new') }}</a>
-    </span>
+        <a href="{{ route('reports.create') }}" class="btn btn-success btn-sm header-button-top"><span class="fa fa-plus"></span> &nbsp;{{ trans('general.add_new') }}</a>
     @endpermission
+    <a href="{{ route('reports.clear') }}" class="btn btn-warning btn-sm header-button-top"><span class="fa fa-history"></span> &nbsp;{{ trans('general.clear_cache') }}</a>
 @endsection
 
 @section('content')
@@ -26,12 +25,14 @@
                                     <i class="fa fa-ellipsis-v text-primary"></i>
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
-                                    @permission('create-common-reports')
                                     <a class="dropdown-item" href="{{ route('reports.edit', $report->id) }}">{{ trans('general.edit') }}</a>
-                                    <div class="dropdown-divider"></div>
+                                    @permission('create-common-reports')
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="{{ route('reports.duplicate', $report->id) }}">{{ trans('general.duplicate') }}</a>
                                     @endpermission
                                     @permission('delete-common-reports')
-                                    {!! Form::deleteLink($report, 'common/reports') !!}
+                                        <div class="dropdown-divider"></div>
+                                        {!! Form::deleteLink($report, 'common/reports') !!}
                                     @endpermission
                                 </div>
                             </div>
@@ -42,7 +43,7 @@
                                 <div class="col">
                                     <a href="{{ route('reports.show', $report->id) }}">
                                         <h5 class="card-title text-uppercase text-muted mb-0">{{ $report->name }}</h5>
-                                        <span class="h2 font-weight-bold mb-0">{{ $totals[$report->id] }}</span>
+                                        <h2 class="font-weight-bold mb-0">{{ $totals[$report->id] }}</h2>
                                     </a>
                                 </div>
                                 <div class="col-auto">
@@ -54,8 +55,8 @@
                                 </div>
                             </div>
                             <p class="mt-3 mb-0 text-sm">
-                                <a href="{{ route('reports.show', $report->id) }}">
-                                    <span class="text-nowrap">{{ $report->description }}</span>
+                                <a class="text-default" href="{{ route('reports.show', $report->id) }}">
+                                    <span class="pre">{{ $report->description }}</span>
                                 </a>
                             </p>
                         </div>

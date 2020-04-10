@@ -27,13 +27,15 @@
                 {{ Form::selectGroup('date_separator', trans('settings.localisation.date.separator'), 'minus', $date_separators, $setting['date_separator'], []) }}
 
                 {{ Form::selectGroup('percent_position', trans('settings.localisation.percent.title'), 'percent', $percent_positions, $setting['percent_position'], []) }}
+
+                {{ Form::selectGroup('discount_location', trans('settings.localisation.discount_location.name'), 'percent', $discount_locations, !empty($setting['discount_location']) ? $setting['discount_location'] : 'total', []) }}
             </div>
         </div>
 
         @permission('update-settings-settings')
             <div class="card-footer">
-                <div class="row float-right">
-                    {{ Form::saveButtons(URL::previous()) }}
+                <div class="row save-buttons">
+                    {{ Form::saveButtons('settings.index') }}
                 </div>
             </div>
         @endpermission

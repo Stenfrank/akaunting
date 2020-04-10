@@ -6,6 +6,7 @@
 
 @section('content')
     <div role="alert" class="alert alert-danger d-none" :class="(form.response.error) ? 'show' : ''" v-if="form.response.error" v-html="form.response.message"></div>
+
     {!! Form::open([
         'route' => 'login',
         'id' => 'login',
@@ -40,13 +41,13 @@
             <div class="col-xs-12 col-sm-4">
                 {!! Form::button(
                 '<div class="aka-loader"></div> <span>' . trans('auth.login') . '</span>',
-                [':disabled' => 'form.loading', 'type' => 'submit', 'class' => 'btn btn-success header-button-top float-right', 'data-loading-text' => trans('general.loading')]) !!}
+                [':disabled' => 'form.loading', 'type' => 'submit', 'class' => 'btn btn-success float-right header-button-top', 'data-loading-text' => trans('general.loading')]) !!}
             </div>
         </div>
 
         @stack('forgotten-password-start')
             <div class="mt-5 mb--4">
-                <a href="{{ url('auth/forgot') }}" class="text-white"><small class="forgot-text">{{ trans('auth.forgot_password') }}</small></a>
+                <a href="{{ route('forgot') }}" class="text-white"><small>{{ trans('auth.forgot_password') }}</small></a>
             </div>
         @stack('forgotten-password-end')
     {!! Form::close() !!}

@@ -45,7 +45,7 @@ class BillTransactions extends Controller
 
         $payment_methods = Modules::getPaymentMethods();
 
-        $paid = $this->getPaidAmount($bill);
+        $paid = $bill->paid;
 
         // Get Bill Totals
         foreach ($bill->totals as $bill_total) {
@@ -57,12 +57,10 @@ class BillTransactions extends Controller
         $bill->grand_total = money($total, $currency->code)->getAmount();
 
         if (!empty($paid)) {
-            $bill->grand_total = round($bill->total - $paid, $currency->precision) ;
+            $bill->grand_total = round($bill->total - $paid, $currency->precision);
         }
 
-        $rand = rand();
-
-        $html = view('modals.bills.payment', compact('bill', 'accounts', 'currencies', 'currency', 'payment_methods', 'rand'))->render();
+        $html = view('modals.bills.payment', compact('bill', 'accounts', 'currencies', 'currency', 'payment_methods'))->render();
 
         return response()->json([
             'success' => true,
@@ -82,66 +80,18 @@ class BillTransactions extends Controller
      */
     public function store(Bill $bill, Request $request)
     {
-        try {
-            $transaction = $this->dispatch(new CreateDocumentTransaction($bill, $request));
+        $response = $this->ajaxDispatch(new CreateDocumentTransaction($bill, $request));
+
+        if ($response['success']) {
+            $response['redirect'] = route('bills.show', $bill->id);
 
             $message = trans('messages.success.added', ['type' => trans_choice('general.payments', 1)]);
 
-            $response = [
-                'success' => true,
-                'error' => false,
-                'message' => $message,
-                'data' => $transaction,
-            ];
-        } catch(\Exception $e) {
-            $response = [
-                'success' => false,
-                'error' => true,
-                'message' => $e->getMessage(),
-                'data' => 'null',
-            ];
+            flash($message)->success();
+        } else {
+            $response['redirect'] = null;
         }
 
         return response()->json($response);
-    }
-
-    protected function getPaidAmount($bill)
-    {
-        $paid = 0;
-
-        // Get Bill Transactions
-        if (!$bill->transactions->count()) {
-            return $paid;
-        }
-
-        $currencies = Currency::enabled()->pluck('rate', 'code')->toArray();
-
-        foreach ($bill->transactions as $item) {
-            $default_amount = (double) $item->amount;
-
-            if ($bill->currency_code == $item->currency_code) {
-                $amount = $default_amount;
-            } else {
-                $default_amount_model = new Transaction();
-                $default_amount_model->default_currency_code = $bill->currency_code;
-                $default_amount_model->amount = $default_amount;
-                $default_amount_model->currency_code = $item->currency_code;
-                $default_amount_model->currency_rate = $currencies[$item->currency_code];
-
-                $default_amount = (double) $default_amount_model->getDivideConvertedAmount();
-
-                $convert_amount_model = new Transaction();
-                $convert_amount_model->default_currency_code = $item->currency_code;
-                $convert_amount_model->amount = $default_amount;
-                $convert_amount_model->currency_code = $bill->currency_code;
-                $convert_amount_model->currency_rate = $currencies[$bill->currency_code];
-
-                $amount = (double) $convert_amount_model->getAmountConvertedFromCustomDefault();
-            }
-
-            $paid += $amount;
-        }
-
-        return $paid;
     }
 }

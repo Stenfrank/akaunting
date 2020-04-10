@@ -3,16 +3,8 @@
 @section('title', trans_choice('general.modules', 2))
 
 @section('new_button')
-    <span>
-        <a href="{{ route('apps.api-key.create') }}" class="btn btn-white btn-sm header-button-top">
-            <span class="fa fa-key"></span> &nbsp;{{ trans('modules.api_key') }}
-        </a>
-    </span>
-    <span>
-        <a href="{{ route('apps.my.index')  }}" class="btn btn-white btn-sm header-button-bottom">
-            <span class="fa fa-user"></span> &nbsp;{{ trans('modules.my_apps') }}
-        </a>
-    </span>
+    <span><a href="{{ route('apps.api-key.create') }}" class="btn btn-white btn-sm header-button-top"><span class="fa fa-key"></span> &nbsp;{{ trans('modules.api_key') }}</a></span>
+    <span><a href="{{ route('apps.my.index') }}" class="btn btn-white btn-sm header-button-top"><span class="fa fa-user"></span> &nbsp;{{ trans('modules.my_apps') }}</a></span>
 @endsection
 
 @section('content')
@@ -21,6 +13,7 @@
     <div class="row">
         <div class="col-md-8">
             <h3>{{ $module->name }}</h3>
+
             <div class="nav-wrapper">
                 <ul class="nav nav-pills nav-fill flex-column flex-md-row" id="tabs-icons-text" role="tablist">
                     <li class="nav-item">
@@ -35,9 +28,9 @@
                         <div class="tab-pane fade show active" id="description">
                             {!! $module->description !!}
 
-                            @if($module->screenshots || $module->video)
+                            @if ($module->screenshots || $module->video)
                                <akaunting-carousel :name="'{{ $module->name }}'" :height="'430px'"
-                                    @if($module->video)
+                                    @if ($module->video)
                                         @php
                                             if (strpos($module->video->link, '=') !== false) {
                                                 $code = explode('=', $module->video->link);
@@ -57,6 +50,7 @@
 
         <div class="col-md-4">
             <h3>{{ trans_choice('general.actions', 1) }}</h3>
+
             <div class="card">
                 <div class="card-body">
                     <div id="countdown-pre-sale"></div>
@@ -102,15 +96,15 @@
                 </div>
             </div>
 
-
             <h3>{{ trans('modules.about') }}</h3>
+
             <div class="card">
                 <table class="table">
                     <tbody>
                         @if ($module->vendor_name)
                             <tr>
                                 <th>{{ trans_choice('general.developers', 1) }}</th>
-                                <td class="text-right"><a href="{{ url('apps/vendors/' . $module->vendor->slug) }}">{{ $module->vendor_name }}</a></td>
+                                <td class="text-right"><a href="{{ route('apps.vendors.show', $module->vendor->slug) }}">{{ $module->vendor_name }}</a></td>
                             </tr>
                         @endif
                         @if ($module->version)
@@ -131,16 +125,10 @@
                                 <td class="text-right">{{ Date::parse($module->updated_at)->diffForHumans() }}</td>
                             </tr>
                         @endif
-                        @if ($module->compatibility)
-                            <tr>
-                                <th>{{ trans('modules.compatibility') }}</th>
-                                <td class="text-right">{{ $module->compatibility }}</td>
-                            </tr>
-                        @endif
                         @if ($module->category)
                             <tr>
                                 <th>{{ trans_choice('general.categories', 1) }}</th>
-                                <td class="text-right"><a href="{{ url('apps/categories/' . $module->category->slug) }}">{{ $module->category->name }}</a></td>
+                                <td class="text-right"><a href="{{ route('apps.categories.show', $module->category->slug) }}">{{ $module->category->name }}</a></td>
                             </tr>
                         @endif
                     </tbody>

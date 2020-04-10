@@ -14,11 +14,29 @@ class BillItem extends Model
     protected $table = 'bill_items';
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['discount'];
+
+    /**
      * Attributes that should be mass-assignable.
      *
      * @var array
      */
-    protected $fillable = ['company_id', 'bill_id', 'item_id', 'name', 'quantity', 'price', 'total', 'tax'];
+    protected $fillable = [
+        'company_id',
+        'bill_id',
+        'item_id',
+        'name',
+        'quantity',
+        'price',
+        'total',
+        'tax',
+        'discount_rate',
+        'discount_type',
+    ];
 
     /**
      * Clonable relationships.
@@ -27,6 +45,15 @@ class BillItem extends Model
      */
     public $cloneable_relations = ['taxes'];
 
+    public static function boot()
+    {
+        parent::boot();
+
+        static::retrieved(function($model) {
+            $model->setTaxIds();
+        });
+    }
+
     public function bill()
     {
         return $this->belongsTo('App\Models\Purchase\Bill');
@@ -34,7 +61,7 @@ class BillItem extends Model
 
     public function item()
     {
-        return $this->belongsTo('App\Models\Common\Item');
+        return $this->belongsTo('App\Models\Common\Item')->withDefault(['name' => trans('general.na')]);
     }
 
     public function taxes()
@@ -73,5 +100,42 @@ class BillItem extends Model
     public function setTaxAttribute($value)
     {
         $this->attributes['tax'] = (double) $value;
+    }
+
+    /**
+     * Get the formatted discount.
+     *
+     * @return string
+     */
+    public function getDiscountAttribute()
+    {
+        if (setting('localisation.percent_position', 'after') === 'after') {
+            $text = ($this->discount_type === 'normal') ? $this->discount_rate . '%' : $this->discount_rate;
+        } else {
+            $text = ($this->discount_type === 'normal') ? '%' . $this->discount_rate : $this->discount_rate;
+        }
+
+        return $text;
+    }
+
+    /**
+     * Convert tax to Array.
+     *
+     * @return void
+     */
+    public function setTaxIds()
+    {
+        $tax_ids = [];
+
+        foreach ($this->taxes as $tax) {
+            $tax_ids[] = (string) $tax->tax_id;
+        }
+
+        $this->setAttribute('tax_id', $tax_ids);
+    }
+
+    public function onCloning($src, $child = null)
+    {
+        unset($this->tax_id);
     }
 }

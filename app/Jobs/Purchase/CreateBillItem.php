@@ -40,7 +40,7 @@ class CreateBillItem extends Job
 
         // Apply discount to amount
         if (!empty($this->request['discount'])) {
-            $item_discounted_amount = $item_amount - ($item_amount * ($this->request['discount'] / 100));
+            $item_discounted_amount = $item_amount -= ($item_amount * ($this->request['discount'] / 100));
         }
 
         $tax_amount = 0;
@@ -66,8 +66,8 @@ class CreateBillItem extends Job
                         $tax_amount = $tax->rate * (double) $this->request['quantity'];
 
                         $item_taxes[] = [
-                            'company_id' => $this->invoice->company_id,
-                            'invoice_id' => $this->invoice->id,
+                            'company_id' => $this->bill->company_id,
+                            'bill_id' => $this->bill->id,
                             'tax_id' => $tax_id,
                             'name' => $tax->name,
                             'amount' => $tax_amount,
@@ -138,6 +138,7 @@ class CreateBillItem extends Job
             'quantity' => (double) $this->request['quantity'],
             'price' => (double) $this->request['price'],
             'tax' => $item_tax_total,
+            'discount_rate' => $this->request['discount'],
             'total' => $item_amount,
         ]);
 

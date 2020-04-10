@@ -15,6 +15,10 @@ class Event extends Provider
         'App\Events\Install\UpdateFinished' => [
             'App\Listeners\Update\CreateModuleUpdatedHistory',
             'App\Listeners\Update\V20\Version200',
+            'App\Listeners\Update\V20\Version203',
+            'App\Listeners\Update\V20\Version205',
+            'App\Listeners\Update\V20\Version207',
+            'App\Listeners\Update\V20\Version208',
         ],
         'Illuminate\Auth\Events\Login' => [
             'App\Listeners\Auth\Login',
@@ -24,6 +28,13 @@ class Event extends Provider
         ],
         'App\Events\Purchase\BillCreated' => [
             'App\Listeners\Purchase\CreateBillCreatedHistory',
+            'App\Listeners\Purchase\IncreaseNextBillNumber',
+        ],
+        'App\Events\Purchase\BillReceived' => [
+            'App\Listeners\Purchase\MarkBillReceived',
+        ],
+        'App\Events\Purchase\BillCancelled' => [
+            'App\Listeners\Purchase\MarkBillCancelled',
         ],
         'App\Events\Purchase\BillRecurring' => [
             'App\Listeners\Purchase\SendBillRecurringNotification',
@@ -38,6 +49,9 @@ class Event extends Provider
         ],
         'App\Events\Sale\InvoiceSent' => [
             'App\Listeners\Sale\MarkInvoiceSent',
+        ],
+        'App\Events\Sale\InvoiceCancelled' => [
+            'App\Listeners\Sale\MarkInvoiceCancelled',
         ],
         'App\Events\Sale\InvoiceViewed' => [
             'App\Listeners\Sale\MarkInvoiceViewed',
@@ -59,10 +73,14 @@ class Event extends Provider
      * @var array
      */
     protected $subscribe = [
-        'App\Listeners\Common\IncomeSummaryReport',
-        'App\Listeners\Common\ExpenseSummaryReport',
-        'App\Listeners\Common\IncomeExpenseSummaryReport',
-        'App\Listeners\Common\TaxSummaryReport',
-        'App\Listeners\Common\ProfitLossReport',
+        'App\Listeners\Report\AddDate',
+        'App\Listeners\Report\AddAccounts',
+        'App\Listeners\Report\AddCustomers',
+        'App\Listeners\Report\AddVendors',
+        'App\Listeners\Report\AddExpenseCategories',
+        'App\Listeners\Report\AddIncomeCategories',
+        'App\Listeners\Report\AddIncomeExpenseCategories',
+        'App\Listeners\Report\AddSearch',
+        'App\Listeners\Report\AddRowsToTax',
     ];
 }

@@ -23,7 +23,7 @@ class Update extends Command
      *
      * @var string
      */
-    protected $signature = 'update {alias} {company_id} {new=latest}';
+    protected $signature = 'update {alias} {company} {new=latest}';
 
     /**
      * The console command description.
@@ -31,14 +31,6 @@ class Update extends Command
      * @var string
      */
     protected $description = 'Allows to update Akaunting and modules directly through CLI';
-    
-    /**
-     * Create a new command instance.
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
 
     /**
      * Execute the console command.
@@ -47,16 +39,20 @@ class Update extends Command
      */
     public function handle()
     {
-        set_time_limit(900); // 15 minutes
+        set_time_limit(3600); // 1 hour
 
         $this->alias = $this->argument('alias');
 
-        $this->new = $this->getNewVersion();
+        if (false === $this->new = $this->getNewVersion()) {
+            $this->error('Not able to get the latest version of ' . $this->alias . '!');
+
+            return self::CMD_ERROR;
+        }
 
         $this->old = $this->getOldVersion();
 
-        session(['company_id' => $this->argument('company_id')]);
-        setting()->setExtraColumns(['company_id' => $this->argument('company_id')]);
+        session(['company_id' => $this->argument('company')]);
+        setting()->setExtraColumns(['company_id' => $this->argument('company')]);
 
         if (!$path = $this->download()) {
             return self::CMD_ERROR;
@@ -79,22 +75,20 @@ class Update extends Command
 
     public function getNewVersion()
     {
-        $new = $this->argument('new');
-
-        if ($new == 'latest') {
-            $modules = ($this->alias == 'core') ? [] : [$this->alias];
-
-            $new = Versions::latest($modules)[$this->alias];
-        }
-
-        return $new;
+        return ($this->argument('new') == 'latest') ? Versions::latest($this->alias) : $this->argument('new');
     }
 
     public function getOldVersion()
     {
-        return ($this->alias == 'core')
-                ? version('short')
-                : module($this->alias)->get('version');
+        if ($this->alias == 'core') {
+            return version('short');
+        }
+
+        if ($module = module($this->alias)) {
+            return $module->get('version');
+        }
+
+        return '1.0.0';
     }
 
     public function download()

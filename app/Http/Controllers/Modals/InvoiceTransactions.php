@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Modals;
 
 use App\Abstracts\Http\Controller;
-use App\Events\Sale\PaymentReceived;
 use App\Http\Requests\Banking\Transaction as Request;
+use App\Jobs\Banking\CreateDocumentTransaction;
 use App\Models\Banking\Account;
 use App\Models\Banking\Transaction;
 use App\Models\Sale\Invoice;
@@ -45,7 +45,7 @@ class InvoiceTransactions extends Controller
 
         $payment_methods = Modules::getPaymentMethods();
 
-        $paid = $this->getPaidAmount($invoice);
+        $paid = $invoice->paid;
 
         // Get Invoice Totals
         foreach ($invoice->totals as $invoice_total) {
@@ -53,17 +53,14 @@ class InvoiceTransactions extends Controller
         }
 
         $total = money($invoice->total, $currency->code, true)->format();
-        //$total = money(0, $currency->code, true)->format();
 
         $invoice->grand_total = money($total, $currency->code)->getAmount();
 
         if (!empty($paid)) {
-            $invoice->grand_total = round($invoice->total - $paid, $currency->precision) ;
+            $invoice->grand_total = round($invoice->total - $paid, $currency->precision);
         }
 
-        $rand = rand();
-
-        $html = view('modals.invoices.payment', compact('invoice', 'accounts', 'currencies', 'currency', 'payment_methods', 'rand'))->render();
+        $html = view('modals.invoices.payment', compact('invoice', 'accounts', 'currencies', 'currency', 'payment_methods'))->render();
 
         return response()->json([
             'success' => true,
@@ -83,72 +80,18 @@ class InvoiceTransactions extends Controller
      */
     public function store(Invoice $invoice, Request $request)
     {
-        try {
-            event(new PaymentReceived($invoice, $request));
+        $response = $this->ajaxDispatch(new CreateDocumentTransaction($invoice, $request));
+
+        if ($response['success']) {
+            $response['redirect'] = route('invoices.show', $invoice->id);
 
             $message = trans('messages.success.added', ['type' => trans_choice('general.payments', 1)]);
 
             flash($message)->success();
-
-            $response = [
-                'success' => true,
-                'error' => false,
-                'message' => $message,
-                'redirect' => route('invoices.show', $invoice->id),
-            ];
-        } catch(\Exception $e) {
-            $message = $e->getMessage();
-
-            //flash($message)->error();
-
-            $response = [
-                'success' => false,
-                'error' => true,
-                'message' => $message,
-                'redirect' => null,
-            ];
+        } else {
+            $response['redirect'] = null;
         }
 
         return response()->json($response);
-    }
-
-    protected function getPaidAmount($invoice)
-    {
-        $paid = 0;
-
-        // Get invoice transactions
-        if (!$invoice->transactions->count()) {
-            return $paid;
-        }
-
-        $_currencies = Currency::enabled()->pluck('rate', 'code')->toArray();
-
-        foreach ($invoice->transactions as $item) {
-            $default_amount = $item->amount;
-
-            if ($invoice->currency_code == $item->currency_code) {
-                $amount = (double) $default_amount;
-            } else {
-                $default_amount_model = new Transaction();
-                $default_amount_model->default_currency_code = $invoice->currency_code;
-                $default_amount_model->amount = $default_amount;
-                $default_amount_model->currency_code = $item->currency_code;
-                $default_amount_model->currency_rate = $_currencies[$item->currency_code];
-
-                $default_amount = (double) $default_amount_model->getDivideConvertedAmount();
-
-                $convert_amount_model = new Transaction();
-                $convert_amount_model->default_currency_code = $item->currency_code;
-                $convert_amount_model->amount = $default_amount;
-                $convert_amount_model->currency_code = $invoice->currency_code;
-                $convert_amount_model->currency_rate = $_currencies[$invoice->currency_code];
-
-                $amount = (double) $convert_amount_model->getAmountConvertedFromCustomDefault();
-            }
-
-            $paid += $amount;
-        }
-
-        return $paid;
     }
 }

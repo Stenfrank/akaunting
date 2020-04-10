@@ -33,7 +33,7 @@ const app = new Vue({
     },
 
     methods:{
-        RateReplace(){
+        onChangeRate() {
             this.form.rate = this.form.rate.replace(',', '.');
         },
 
@@ -42,7 +42,7 @@ const app = new Vue({
                 params: {
                     code: code
                 }
-              })
+            })
             .then(response => {
                 this.form.rate = response.data.rate;
                 this.form.precision = response.data.precision;

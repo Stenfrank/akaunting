@@ -1,5 +1,13 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
+/**
+ * 'common' middleware applied to all routes
+ *
+ * @see \App\Providers\Route::mapCommonRoutes
+ */
+
 Route::group(['middleware' => 'auth'], function () {
     Route::group(['as' => 'uploads.', 'prefix' => 'uploads'], function () {
         Route::get('{id}', 'Common\Uploads@get')->name('get');

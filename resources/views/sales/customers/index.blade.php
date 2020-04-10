@@ -4,8 +4,8 @@
 
 @section('new_button')
     @permission('create-sales-customers')
-        <span><a href="{{ url('sales/customers/create') }}" class="btn btn-success btn-sm header-button-top"><span class="fa fa-plus"></span> &nbsp;{{ trans('general.add_new') }}</a></span>
-        <span><a href="{{ url('common/import/sales/customers') }}" class="btn btn-white btn-sm header-button-top"><span class="fa fa-upload"></span> &nbsp;{{ trans('import.import') }}</a></span>
+        <span><a href="{{ route('customers.create') }}" class="btn btn-success btn-sm header-button-top"><span class="fa fa-plus"></span> &nbsp;{{ trans('general.add_new') }}</a></span>
+        <span><a href="{{ route('import.create', ['group' => 'sales', 'type' => 'customers']) }}" class="btn btn-white btn-sm header-button-top"><span class="fa fa-upload"></span> &nbsp;{{ trans('import.import') }}</a></span>
     @endpermission
     <span><a href="{{ route('customers.export', request()->input()) }}" class="btn btn-white btn-sm header-button-top"><span class="fa fa-download"></span> &nbsp;{{ trans('general.export') }}</a></span>
 @endsection
@@ -13,21 +13,21 @@
 @section('content')
     @if ($customers->count())
         <div class="card">
-            <div class="card-header border-bottom-0" v-bind:class="[bulk_action.show ? 'bg-gradient-primary' : '']">
+            <div class="card-header border-bottom-0" :class="[{'bg-gradient-primary': bulk_action.show}]">
                 {!! Form::open([
-                    'url' => 'sales/customers',
-                    'role' => 'form',
                     'method' => 'GET',
+                    'route' => 'customers.index',
+                    'role' => 'form',
                     'class' => 'mb-0'
                 ]) !!}
-                    <div class="row" v-if="!bulk_action.show">
-                        <div class="col-12 d-flex align-items-center">
-                            <span class="font-weight-400 d-none d-lg-block mr-2">{{ trans('general.search') }}:</span>
-                            <akaunting-search></akaunting-search>
-                        </div>
+                    <div class="align-items-center" v-if="!bulk_action.show">
+                        <akaunting-search
+                            :placeholder="'{{ trans('general.search_placeholder') }}'"
+                            :options="{{ json_encode([]) }}"
+                        ></akaunting-search>
                     </div>
 
-                    {{ Form::bulkActionRowGroup('general.customers', $bulk_actions, 'sales/customers') }}
+                    {{ Form::bulkActionRowGroup('general.customers', $bulk_actions, ['group' => 'sales', 'type' => 'customers']) }}
                 {!! Form::close() !!}
             </div>
 
@@ -52,7 +52,7 @@
                                     {{ Form::bulkActionGroup($item->id, $item->name) }}
                                 </td>
                                 <td class="col-xs-4 col-sm-3 col-md-3 col-lg-3 col-xl-2">
-                                    <a class="col-aka text-success" href="{{ route('customers.show', $item->id) }}">{{ $item->name }}</a>
+                                    <a class="col-aka" href="{{ route('customers.show', $item->id) }}">{{ $item->name }}</a>
                                 </td>
                                 <td class="col-md-2 col-lg-2 col-xl-3 d-none d-md-block long-texts text-left">
                                     {{ !empty($item->email) ? $item->email : trans('general.na') }}
@@ -68,9 +68,9 @@
                                         {{ Form::enabledGroup($item->id, $item->name, $item->enabled) }}
                                     @else
                                         @if ($item->enabled)
-                                            <badge rounded type="success">{{ trans('general.enabled') }}</badge>
+                                            <badge rounded type="success" class="mw-60">{{ trans('general.yes') }}</badge>
                                         @else
-                                            <badge rounded type="danger">{{ trans('general.disabled') }}</badge>
+                                            <badge rounded type="danger" class="mw-60">{{ trans('general.no') }}</badge>
                                         @endif
                                     @endif
                                 </td>
@@ -81,16 +81,16 @@
                                         </a>
                                         <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
                                             <a class="dropdown-item" href="{{ route('customers.show', $item->id) }}">{{ trans('general.show') }}</a>
-                                                <a class="dropdown-item" href="{{ route('customers.edit', $item->id) }}">{{ trans('general.edit') }}</a>
+                                            <a class="dropdown-item" href="{{ route('customers.edit', $item->id) }}">{{ trans('general.edit') }}</a>
 
-                                                <div class="dropdown-divider"></div>
+                                            <div class="dropdown-divider"></div>
                                             @permission('create-sales-customers')
                                                 <a class="dropdown-item" href="{{ route('customers.duplicate', $item->id) }}">{{ trans('general.duplicate') }}</a>
 
                                                 <div class="dropdown-divider"></div>
                                             @endpermission
                                             @permission('delete-sales-customers')
-                                                {!! Form::deleteLink($item, 'sales/customers') !!}
+                                                {!! Form::deleteLink($item, 'customers.destroy') !!}
                                             @endpermission
                                         </div>
                                     </div>

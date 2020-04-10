@@ -42,7 +42,7 @@
                         @foreach($taxes as $item)
                             <tr class="row align-items-center border-top-1" id="tax-{{ $item->id }}">
                                 <td class="col-xs-4 col-sm-4 col-md-3 tax-name">
-                                    <a href="javascript:void(0);" class="text-success" @click="onEditTax('{{ $item->id }}')">
+                                    <a href="javascript:void(0);" @click="onEditTax('{{ $item->id }}')">
                                         {{ $item->name }}
                                     </a>
                                 </td>
@@ -52,9 +52,9 @@
                                         {{ Form::enabledGroup($item->id, $item->name, $item->enabled) }}
                                     @else
                                         @if ($item->enabled)
-                                            <badge rounded type="success">{{ trans('general.enabled') }}</badge>
+                                            <badge rounded type="success" class="mw-60">{{ trans('general.yes') }}</badge>
                                         @else
-                                            <badge rounded type="danger">{{ trans('general.disabled') }}</badge>
+                                            <badge rounded type="danger" class="mw-60">{{ trans('general.no') }}</badge>
                                         @endif
                                     @endif
                                 </td>
@@ -106,13 +106,15 @@
         <div class="card-footer">
             <div class="row">
                 <div class="col-sm-6">
-                    <a href="{{ url('wizard/currencies') }}" class="btn btn-white header-button-top">
-                        <span class="fas fa-arrow-left"></span> &nbsp;{{ trans('modules.back') }}
+                    <a href="{{ url('wizard/currencies') }}" class="btn btn-icon btn-white header-button-top">
+                        <span class="btn-inner--icon"><i class="fas fa-arrow-left"></i></span>
+                        <span class="btn-inner--text">{{ trans('modules.back') }}</span>
                     </a>
                 </div>
                 <div class="col-sm-6 text-right">
-                    <a href="{{ url('wizard/finish') }}" id="wizard-skip" class="btn btn-white header-button-top" @click="next">
-                        <span class="fas fa-arrow-right"></span> &nbsp;{{ trans('general.skip') }}
+                    <a href="{{ url('wizard/finish') }}" id="wizard-skip" class="btn btn-icon btn-white header-button-top">
+                        <span class="btn-inner--icon"><i class="fas fa-arrow-right"></i></span>
+                        <span class="btn-inner--text">{{ trans('general.skip') }}</span>
                     </a>
                 </div>
             </div>

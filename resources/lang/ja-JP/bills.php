@@ -35,11 +35,13 @@ return [
     'receive_bill'          => '請求書を受け取る',
     'make_payment'          => '支払う',
 
-    'status' => [
-        'draft'             => '下書き',
+    'statuses' => [
+        'draft'             => 'ドラフト',
         'received'          => '受け取った',
         'partial'           => '部分的',
-        'paid'              => '有料',
+        'paid'              => '支払済み',
+        'overdue'           => '遅れた',
+        'unpaid'            => '未払い',
     ],
 
     'messages' => [
